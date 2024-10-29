@@ -23,7 +23,7 @@
 Summary: Utilities from the general purpose cryptography library with TLS implementation
 Name: openssl
 Version: 1.0.2k
-Release: 26.1%{?dist}
+Release: 26.2%{?dist}
 Epoch: 1
 # We have to remove certain patented algorithms from the openssl source
 # tarball with the hobble-openssl script which is included below.
@@ -120,6 +120,9 @@ Patch117: openssl-1.0.2k-cve-2023-0286-X400.patch
 # XCP-ng patches
 # https://github.com/sidneys/homebrew-homebrew/issues/23#issuecomment-1731492984
 Patch1000: openssl-1.0.2k-update-expiring-certificates.patch
+Patch1001: openssl-1.0.2k-cve-2019-1547.backport.patch
+Patch1002: openssl-1.0.2k-cve-2019-1551.backport.patch
+Patch1003: openssl-1.0.2k-cve-2019-1563.backport.patch
 
 License: OpenSSL
 Group: System Environment/Libraries
@@ -271,6 +274,9 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch117 -p1 -b .cve-2023-0286
 
 %patch1000 -p1 -b .update-expiring-certificates
+%patch1001 -p1 -b .cve-2019-1547
+%patch1002 -p1 -b .cve-2019-1551
+%patch1003 -p1 -b .cve-2019-1563
 
 sed -i 's/SHLIB_VERSION_NUMBER "1.0.0"/SHLIB_VERSION_NUMBER "%{version}"/' crypto/opensslv.h
 
@@ -570,6 +576,9 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 %postun libs -p /sbin/ldconfig
 
 %changelog
+* Tue Oct 29 2024 Lucas Ravagnier <lucas.ravagnier@vates.tech> - 1:1.0.2k-26.2
+- Backport fix for CVEs: CVE-2019-1547, CVE-2019-1551, CVE-2019-1563
+
 * Fri Jun 14 2024 Guillaume Thouvenin <guillaume.thouvenin@vates.tech> - 1:1.0.2k-26.1
 - Add openssl-1.0.2k-update-expiring-certificates.patch to fix build time tests
 - Added gcc to BuildRequires
