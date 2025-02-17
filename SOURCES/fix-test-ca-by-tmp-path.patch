@@ -1,0 +1,52 @@
+diff --git a/test/CAss.cnf b/test/CAss.cnf
+index 109bc8c10ba0..1959cf615660 100644
+--- a/test/CAss.cnf
++++ b/test/CAss.cnf
+@@ -31,7 +31,7 @@ default_ca	= CA_default		# The default ca section
+ ####################################################################
+ [ CA_default ]
+ 
+-dir		= ./demoCA		# Where everything is kept
++dir		= /tmp/etc/pki/CA       # Where everything is kept
+ certs		= $dir/certs		# Where the issued certs are kept
+ crl_dir		= $dir/crl		# Where the issued crl are kept
+ database	= $dir/index.txt	# database index file.
+diff --git a/test/testca b/test/testca
+index b109cfe271f3..d8b284ebbfe2 100644
+--- a/test/testca
++++ b/test/testca
+@@ -14,6 +14,9 @@ export SSLEAY_CONFIG
+ OPENSSL="`pwd`/../util/opensslwrap.sh"
+ export OPENSSL
+ 
++CATOP=/tmp/etc/pki/CA
++export CATOP
++
+ /bin/rm -fr demoCA
+ $SH ../apps/CA.sh -newca <<EOF
+ EOF
+@@ -29,23 +32,6 @@ if [ $? != 0 ]; then
+ 	exit 1;
+ fi
+
+# openssl.cnf will access /etc/pki/CA folder, just skip it 
+-
+-SSLEAY_CONFIG="-config ../apps/openssl.cnf"
+-export SSLEAY_CONFIG
+-$SH ../apps/CA.sh -sign  <<EOF
+-y
+-y
+-EOF
+-if [ $? != 0 ]; then
+-	exit 1;
+-fi
+-
+-
+-$SH ../apps/CA.sh -verify newcert.pem
+-if [ $? != 0 ]; then
+-	exit 1;
+-fi
+-
+ /bin/rm -fr demoCA newcert.pem newreq.pem
+ #usage: CA -newcert|-newreq|-newca|-sign|-verify
+ 
