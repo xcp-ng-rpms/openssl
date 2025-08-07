@@ -1,0 +1,10 @@
+config_diagnostics = 1
+openssl_conf = openssl_init
+.include /etc/pki/tls/fipsmodule.cnf
+
+[openssl_init]
+providers = provider_sect
+
+[provider_sect]
+fips = fips_sect
+
