@@ -1,139 +1,72 @@
+%global package_speccommit 702826a0634052f821626edbf7764d892c5a5a81
+%global usver 3.0.9
+%global xsver 2.0.1
+%global xsrel %{xsver}%{?xscount}%{?xshash}
 # For the curious:
-# 0.9.5a soversion = 0
-# 0.9.6  soversion = 1
-# 0.9.6a soversion = 2
-# 0.9.6c soversion = 3
-# 0.9.7a soversion = 4
-# 0.9.7ef soversion = 5
-# 0.9.8ab soversion = 6
-# 0.9.8g soversion = 7
 # 0.9.8jk + EAP-FAST soversion = 8
 # 1.0.0 soversion = 10
-%define soversion 10
-
-# Number of threads to spawn when testing some threading fixes.
-%define thread_test_threads %{?threads:%{threads}}%{!?threads:1}
-
-# Arches on which we need to prevent arch conflicts on opensslconf.h, must
-# also be handled in opensslconf-new.h.
-%define multilib_arches %{ix86} ia64 %{mips} ppc ppc64 s390 s390x sparcv9 sparc64 x86_64
+# 1.1.0 soversion = 1.1 (same as upstream although presence of some symbols
+#                        depends on build configuration options)
+# 3.0.0 soversion = 3 (same as upstream)
+%define soversion 3
 
 %global _performance_build 1
 
 Summary: Utilities from the general purpose cryptography library with TLS implementation
-Name: openssl
-Version: 1.0.2k
-Release: 26.2%{?dist}
+Name:    openssl
+Version: 3.0.9
+Release: %{?xsrel}.2%{?dist}
 Epoch: 1
+%bcond_without test
+
 # We have to remove certain patented algorithms from the openssl source
 # tarball with the hobble-openssl script which is included below.
 # The original openssl upstream tarball cannot be shipped in the .src.rpm.
-Source: openssl-%{version}-hobbled.tar.xz
+Source0: openssl-3.0.9-hobbled.tar.gz
 Source1: hobble-openssl
 Source2: Makefile.certificate
-Source5: README.legacy-settings
+Source3: genpatches
+Source4: openssl.rpmlintrc
 Source6: make-dummy-cert
 Source7: renew-dummy-cert
-Source8: openssl-thread-test.c
-Source9: opensslconf-new.h
-Source10: opensslconf-new-warning.h
-Source11: README.FIPS
+Source9: configuration-switch.h
+Source10: configuration-prefix.h
 Source12: ec_curve.c
 Source13: ectest.c
-# Build changes
-Patch1: openssl-1.0.2e-rpmbuild.patch
-Patch2: openssl-1.0.2a-defaults.patch
-Patch4: openssl-1.0.2i-enginesdir.patch
-Patch5: openssl-1.0.2a-no-rpath.patch
-Patch6: openssl-1.0.2a-test-use-localhost.patch
-Patch7: openssl-1.0.0-timezone.patch
-Patch8: openssl-1.0.1c-perlfind.patch
-Patch9: openssl-1.0.1c-aliasing.patch
-# Bug fixes
-Patch23: openssl-1.0.2c-default-paths.patch
-Patch24: openssl-1.0.2a-issuer-hash.patch
-# Functionality changes
-Patch33: openssl-1.0.0-beta4-ca-dir.patch
-Patch34: openssl-1.0.2a-x509.patch
-Patch35: openssl-1.0.2a-version-add-engines.patch
-Patch39: openssl-1.0.2a-ipv6-apps.patch
-Patch40: openssl-1.0.2i-fips.patch
-Patch43: openssl-1.0.2j-krb5keytab.patch
-Patch45: openssl-1.0.2a-env-zlib.patch
-Patch47: openssl-1.0.2a-readme-warning.patch
-Patch49: openssl-1.0.1i-algo-doc.patch
-Patch50: openssl-1.0.2a-dtls1-abi.patch
-Patch51: openssl-1.0.2a-version.patch
-Patch56: openssl-1.0.2a-rsa-x931.patch
-Patch58: openssl-1.0.2a-fips-md5-allow.patch
-Patch60: openssl-1.0.2a-apps-dgst.patch
-Patch63: openssl-1.0.2k-starttls.patch
-Patch65: openssl-1.0.2i-chil-fixes.patch
-Patch66: openssl-1.0.2h-pkgconfig.patch
-Patch68: openssl-1.0.2i-secure-getenv.patch
-Patch70: openssl-1.0.2a-fips-ec.patch
-Patch71: openssl-1.0.2g-manfix.patch
-Patch72: openssl-1.0.2a-fips-ctor.patch
-Patch73: openssl-1.0.2c-ecc-suiteb.patch
-Patch74: openssl-1.0.2j-deprecate-algos.patch
-Patch75: openssl-1.0.2a-compat-symbols.patch
-Patch76: openssl-1.0.2j-new-fips-reqs.patch
-Patch77: openssl-1.0.2j-downgrade-strength.patch
-Patch78: openssl-1.0.2k-cc-reqs.patch
-Patch90: openssl-1.0.2i-enc-fail.patch
-Patch94: openssl-1.0.2d-secp256k1.patch
-Patch95: openssl-1.0.2e-remove-nistp224.patch
-Patch96: openssl-1.0.2e-speed-doc.patch
-Patch97: openssl-1.0.2k-no-ssl2.patch
-Patch98: openssl-1.0.2k-long-hello.patch
-Patch99: openssl-1.0.2k-fips-randlock.patch
-Patch106: openssl-1.0.2k-rsa-check.patch
-# Backported fixes including security fixes
-Patch80: openssl-1.0.2e-wrap-pad.patch
-Patch81: openssl-1.0.2a-padlock64.patch
-Patch82: openssl-1.0.2i-trusted-first-doc.patch
-Patch83: openssl-1.0.2k-backports.patch
-Patch84: openssl-1.0.2k-ppc-update.patch
-Patch85: openssl-1.0.2k-req-x509.patch
-Patch86: openssl-1.0.2k-cve-2017-3736.patch
-Patch87: openssl-1.0.2k-cve-2017-3737.patch
-Patch88: openssl-1.0.2k-cve-2017-3738.patch
-Patch89: openssl-1.0.2k-s390x-update.patch
-Patch100: openssl-1.0.2k-name-sensitive.patch
-Patch101: openssl-1.0.2k-cve-2017-3735.patch
-Patch102: openssl-1.0.2k-cve-2018-0732.patch
-Patch103: openssl-1.0.2k-cve-2018-0737.patch
-Patch104: openssl-1.0.2k-cve-2018-0739.patch
-Patch105: openssl-1.0.2k-cve-2018-0495.patch
-Patch107: openssl-1.0.2k-cve-2018-5407.patch
-Patch108: openssl-1.0.2k-cve-2018-0734.patch
-Patch109: openssl-1.0.2k-cve-2019-1559.patch
-Patch110: openssl-1.0.2k-fix-one-and-done.patch
-Patch111: openssl-1.0.2k-fix-9-lives.patch
-Patch112: openssl-1.0.2k-cve-2020-1971.patch
-Patch113: openssl-1.0.2k-cve-2021-23840.patch
-Patch114: openssl-1.0.2k-cve-2021-23841.patch
-Patch115: openssl-1.0.2k-cve-2021-3712.patch
-Patch116: openssl-1.0.2k-cve-2022-0778.patch
-Patch117: openssl-1.0.2k-cve-2023-0286-X400.patch
+Source14: openssl_fips.cnf
+Patch0: 0001-Aarch64-and-ppc64le-use-lib64.patch
+Patch1: 0002-Use-more-general-default-values-in-openssl.cnf.patch
+Patch2: 0003-Do-not-install-html-docs.patch
+Patch3: 0005-apps-ca-fix-md-option-help-text.patch
+Patch4: 0006-Disable-signature-verification-with-totally-unsafe-h.patch
+Patch5: 0008-Add-FIPS_mode-compatibility-macro.patch
+Patch6: 0011-Remove-EC-curves.patch
+Patch7: 0012-Disable-explicit-ec.patch
+Patch8: 0024-load-legacy-prov.patch
+Patch9: 0049-Allow-disabling-of-SHA1-signatures.patch
+Patch10: 0051-Support-different-R_BITS-lengths-for-KBKDF.patch
+Patch11: 0052-Allow-SHA1-in-seclevel-1-if-rh-allow-sha1-signatures.patch
+Patch12: 0053-Add-SHA1-probes.patch
+Patch13: 0056-strcasecmp.patch
+Patch14: 0001-Avoid-type-errors-in-EAI-related-name-check-logic.patch
 
-# XCP-ng patches
-# https://github.com/sidneys/homebrew-homebrew/issues/23#issuecomment-1731492984
-Patch1000: openssl-1.0.2k-update-expiring-certificates.patch
-Patch1001: openssl-1.0.2k-cve-2019-1547.backport.patch
-Patch1002: openssl-1.0.2k-cve-2019-1551.backport.patch
-Patch1003: openssl-1.0.2k-cve-2019-1563.backport.patch
-
-License: OpenSSL
-Group: System Environment/Libraries
+License: ASL 2.0
 URL: http://www.openssl.org/
-BuildRoot: %{_tmppath}/%{name}-%{version}-root
-BuildRequires: coreutils, krb5-devel, perl, sed, zlib-devel, /usr/bin/cmp
+BuildRequires: coreutils, perl-interpreter, sed, zlib-devel, /usr/bin/cmp
 BuildRequires: lksctp-tools-devel
 BuildRequires: /usr/bin/rename
 BuildRequires: /usr/bin/pod2man
-BuildRequires: gcc
-Requires: coreutils, make
+BuildRequires: /usr/sbin/sysctl
+BuildRequires: perl(Test::Harness), perl(Test::More), perl(Math::BigInt)
+BuildRequires: perl(Module::Load::Conditional), perl(File::Temp)
+BuildRequires: perl(Time::HiRes), perl(IPC::Cmd), perl(Pod::Html), perl(Digest::SHA)
+BuildRequires: perl(FindBin), perl(lib), perl(File::Compare), perl(File::Copy), perl(bigint)
+BuildRequires: git-core
+BuildRequires: systemtap-sdt-devel
+BuildRequires: perl(ExtUtils::MakeMaker)
+BuildRequires: devtoolset-11-binutils
+BuildRequires: devtoolset-11-gcc
+Requires: coreutils
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description
@@ -144,10 +77,7 @@ protocols.
 
 %package libs
 Summary: A general purpose cryptography library with TLS implementation
-Group: System Environment/Libraries
 Requires: ca-certificates >= 2008-5
-# Needed obsoletes due to the base/lib subpackage split
-Obsoletes: openssl < 1:1.0.1-0.3.beta3
 
 %description libs
 OpenSSL is a toolkit for supporting cryptography. The openssl-libs
@@ -156,9 +86,7 @@ support cryptographic algorithms and protocols.
 
 %package devel
 Summary: Files for development of applications which will use OpenSSL
-Group: Development/Libraries
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
-Requires: krb5-devel%{?_isa}, zlib-devel%{?_isa}
 Requires: pkgconfig
 
 %description devel
@@ -166,21 +94,9 @@ OpenSSL is a toolkit for supporting cryptography. The openssl-devel
 package contains include files needed to develop applications which
 support various cryptographic algorithms and protocols.
 
-%package static
-Summary:  Libraries for static linking of applications which will use OpenSSL
-Group: Development/Libraries
-Requires: %{name}-devel%{?_isa} = %{epoch}:%{version}-%{release}
-
-%description static
-OpenSSL is a toolkit for supporting cryptography. The openssl-static
-package contains static libraries needed for static linking of
-applications which support various cryptographic algorithms and
-protocols.
-
 %package perl
 Summary: Perl scripts provided with OpenSSL
-Group: Applications/Internet
-Requires: perl
+Requires: perl-interpreter
 Requires: %{name}%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description perl
@@ -189,163 +105,33 @@ package provides Perl scripts for converting certificates and keys
 from other formats to the formats used by the OpenSSL toolkit.
 
 %prep
-%setup -q -n %{name}-%{version}
+%autosetup -S git -n %{name}-%{version}
 
 # The hobble_openssl is called here redundantly, just to be sure.
 # The tarball has already the sources removed.
 %{SOURCE1} > /dev/null
 
-cp %{SOURCE12} %{SOURCE13} crypto/ec/
-
-%patch1 -p1 -b .rpmbuild
-%patch2 -p1 -b .defaults
-%patch4 -p1 -b .enginesdir %{?_rawbuild}
-%patch5 -p1 -b .no-rpath
-%patch6 -p1 -b .use-localhost
-%patch7 -p1 -b .timezone
-%patch8 -p1 -b .perlfind %{?_rawbuild}
-%patch9 -p1 -b .aliasing
-
-%patch23 -p1 -b .default-paths
-%patch24 -p1 -b .issuer-hash
-
-%patch33 -p1 -b .ca-dir
-%patch34 -p1 -b .x509
-%patch35 -p1 -b .version-add-engines
-%patch39 -p1 -b .ipv6-apps
-%patch40 -p1 -b .fips
-%patch43 -p1 -b .krb5keytab 
-%patch45 -p1 -b .env-zlib
-%patch47 -p1 -b .warning
-%patch49 -p1 -b .algo-doc
-%patch50 -p1 -b .dtls1-abi
-%patch51 -p1 -b .version
-%patch56 -p1 -b .x931
-%patch58 -p1 -b .md5-allow
-%patch60 -p1 -b .dgst
-%patch63 -p1 -b .starttls
-%patch65 -p1 -b .chil
-%patch66 -p1 -b .pkgconfig
-%patch68 -p1 -b .secure-getenv
-%patch70 -p1 -b .fips-ec
-%patch71 -p1 -b .manfix
-%patch72 -p1 -b .fips-ctor
-%patch73 -p1 -b .suiteb
-%patch74 -p1 -b .deprecate-algos
-%patch75 -p1 -b .compat
-%patch76 -p1 -b .fips-reqs
-%patch77 -p1 -b .strength
-%patch78 -p1 -b .cc-reqs
-%patch90 -p1 -b .enc-fail
-%patch94 -p1 -b .secp256k1
-%patch95 -p1 -b .nistp224
-%patch96 -p1 -b .speed-doc
-%patch97 -p1 -b .no-ssl2
-%patch98 -p1 -b .long-hello
-%patch99 -p1 -b .randlock
-%patch106 -p1 -b .rsa-check
-
-%patch80 -p1 -b .wrap
-%patch81 -p1 -b .padlock64
-%patch82 -p1 -b .trusted-first
-%patch83 -p1 -b .backports
-%patch84 -p1 -b .ppc-update
-%patch85 -p1 -b .req-x509
-%patch86 -p1 -b .mont5-carry
-%patch87 -p1 -b .ssl-err
-%patch88 -p1 -b .rsaz-overflow
-%patch89 -p1 -b .s390x-update
-%patch100 -p1 -b .name-sensitive
-%patch101 -p1 -b .overread
-%patch102 -p1 -b .large-dh
-%patch103 -p1 -b .gen-timing
-%patch104 -p1 -b .asn1-recursive
-%patch105 -p1 -b .rohnp-fix
-%patch107 -p1 -b .ecc-ladder
-%patch108 -p1 -b .dsa-signing
-%patch109 -p1 -b .padding-oracle
-%patch110 -p1 -b .one-and-done
-%patch111 -p1 -b .9-lives
-%patch112 -p1 -b .null-dereference
-%patch113 -p1 -b .int-overflow
-%patch114 -p1 -b .null-hash-deref
-%patch115 -p1 -b .read-buff
-%patch116 -p1 -b .cve-2022-0778
-%patch117 -p1 -b .cve-2023-0286
-
-%patch1000 -p1 -b .update-expiring-certificates
-%patch1001 -p1 -b .cve-2019-1547
-%patch1002 -p1 -b .cve-2019-1551
-%patch1003 -p1 -b .cve-2019-1563
-
-sed -i 's/SHLIB_VERSION_NUMBER "1.0.0"/SHLIB_VERSION_NUMBER "%{version}"/' crypto/opensslv.h
-
-# Modify the various perl scripts to reference perl in the right location.
-perl util/perlpath.pl `dirname %{__perl}`
-
-# Generate a table with the compile settings for my perusal.
-touch Makefile
-make TABLE PERL=%{__perl}
+cp %{SOURCE12} crypto/ec/
+cp %{SOURCE13} test/
 
 %build
 # Figure out which flags we want to use.
 # default
+source /opt/rh/devtoolset-11/enable
 sslarch=%{_os}-%{_target_cpu}
-%ifarch %ix86
-sslarch=linux-elf
-if ! echo %{_target} | grep -q i686 ; then
-	sslflags="no-asm 386"
-fi
-%endif
-%ifarch x86_64
 sslflags=enable-ec_nistp_64_gcc_128
-%endif
-%ifarch sparcv9
-sslarch=linux-sparcv9
-sslflags=no-asm
-%endif
-%ifarch sparc64
-sslarch=linux64-sparcv9
-sslflags=no-asm
-%endif
-%ifarch alpha alphaev56 alphaev6 alphaev67
-sslarch=linux-alpha-gcc
-%endif
-%ifarch s390 sh3eb sh4eb
-sslarch="linux-generic32 -DB_ENDIAN"
-%endif
-%ifarch s390x
-sslarch="linux64-s390x"
-%endif
 %ifarch %{arm}
 sslarch=linux-armv4
 %endif
-%ifarch aarch64
-sslarch=linux-aarch64
-sslflags=enable-ec_nistp_64_gcc_128
-%endif
-%ifarch sh3 sh4
-sslarch=linux-generic32
-%endif
-%ifarch ppc64 ppc64p7
-sslarch=linux-ppc64
-%endif
-%ifarch ppc64le
-sslarch="linux-ppc64le"
-sslflags=enable-ec_nistp_64_gcc_128
-%endif
-%ifarch mips mipsel
-sslarch="linux-mips32 -mips32r2"
-%endif
-%ifarch mips64 mips64el
-sslarch="linux64-mips64 -mips64r2"
-%endif
-%ifarch mips64el
-sslflags=enable-ec_nistp_64_gcc_128
-%endif
-%ifarch riscv64
-sslarch=linux-generic64
-%endif
+ktlsopt=enable-ktls
+
+# Add -Wa,--noexecstack here so that libcrypto's assembler modules will be
+# marked as not requiring an executable stack.
+# Also add -DPURIFY to make using valgrind with openssl easier as we do not
+# want to depend on the uninitialized memory as a source of entropy anyway.
+RPM_OPT_FLAGS="$RPM_OPT_FLAGS -Wa,--noexecstack -Wa,--generate-missing-build-notes=yes -DPURIFY $RPM_LD_FLAGS"
+
+export HASHBANGPERL=/usr/bin/perl
 
 # ia64, x86_64, ppc are OK by default
 # Configure the build tree.  Override OpenSSL defaults with known-good defaults
@@ -353,25 +139,15 @@ sslarch=linux-generic64
 # RPM_OPT_FLAGS, so we can skip specifiying them here.
 ./Configure \
 	--prefix=%{_prefix} --openssldir=%{_sysconfdir}/pki/tls ${sslflags} \
-	zlib sctp enable-camellia enable-seed enable-tlsext enable-rfc3779 \
-	enable-cms enable-md2 enable-rc5 \
-	no-mdc2 no-ec2m no-gost no-srp \
-	--with-krb5-flavor=MIT --enginesdir=%{_libdir}/openssl/engines \
-	--with-krb5-dir=/usr shared  ${sslarch} %{?!nofips:fips}
+	zlib enable-camellia enable-seed enable-rfc3779 enable-sctp \
+	enable-cms enable-md2 enable-rc5 ${ktlsopt} enable-fips\
+	no-mdc2 no-ec2m no-sm2 no-sm3 no-sm4 no-aria no-chacha no-poly1305 no-siphash \
+	shared  ${sslarch} $RPM_OPT_FLAGS '-DDEVRANDOM="\"/dev/urandom\""'
 
-# Add -Wa,--noexecstack here so that libcrypto's assembler modules will be
-# marked as not requiring an executable stack.
-# Also add -DPURIFY to make using valgrind with openssl easier as we do not
-# want to depend on the uninitialized memory as a source of entropy anyway.
-RPM_OPT_FLAGS="$RPM_OPT_FLAGS -Wa,--noexecstack -DPURIFY"
-make depend
-make all
+# Do not run this in a production package the FIPS symbols must be patched-in
+#util/mkdef.pl crypto update
 
-# Generate hashes for the included certs.
-make rehash
-
-# Overwrite FIPS README and copy README.legacy-settings
-cp -f %{SOURCE5} %{SOURCE11} .
+make -s %{?_smp_mflags} all
 
 # Clean up the .pc files
 for i in libcrypto.pc libssl.pc openssl.pc ; do
@@ -379,91 +155,64 @@ for i in libcrypto.pc libssl.pc openssl.pc ; do
 done
 
 %check
+%if %{with test}
 # Verify that what was compiled actually works.
 
-# We must revert patch33 before tests otherwise they will fail
-patch -p1 -R < %{PATCH33}
+# Hack - either enable SCTP AUTH chunks in kernel or disable sctp for check
+(sysctl net.sctp.addip_enable=1 && sysctl net.sctp.auth_enable=1) || \
+(echo 'Failed to enable SCTP AUTH chunks, disabling SCTP for tests...' &&
+ sed '/"msan" => "default",/a\ \ "sctp" => "default",' configdata.pm > configdata.pm.new && \
+ touch -r configdata.pm configdata.pm.new && \
+ mv -f configdata.pm.new configdata.pm)
 
-LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-export LD_LIBRARY_PATH
+# We must revert patch3 before tests otherwise they will fail
+
+# xenpkg generate the patch nubmer basing on the order of series file
+# start from 0
+# the patch want to revert is 0004-Override-default-paths-for-the-CA-directory-tree.patch
+
+#patch -p1 -R < %%{PATCH3}
+
 OPENSSL_ENABLE_MD5_VERIFY=
 export OPENSSL_ENABLE_MD5_VERIFY
-make -C test apps tests
-%{__cc} -o openssl-thread-test \
-	`krb5-config --cflags` \
-	-I./include \
-	$RPM_OPT_FLAGS \
-	%{SOURCE8} \
-	-L. \
-	-lssl -lcrypto \
-	`krb5-config --libs` \
-	-lpthread -lz -ldl
-./openssl-thread-test --threads %{thread_test_threads}
-
-# Add generation of HMAC checksum of the final stripped library
-%define __spec_install_post \
-    %{?__debug_package:%{__debug_install_post}} \
-    %{__arch_install_post} \
-    %{__os_install_post} \
-    crypto/fips/fips_standalone_hmac $RPM_BUILD_ROOT%{_libdir}/libcrypto.so.%{version} >$RPM_BUILD_ROOT%{_libdir}/.libcrypto.so.%{version}.hmac \
-    ln -sf .libcrypto.so.%{version}.hmac $RPM_BUILD_ROOT%{_libdir}/.libcrypto.so.%{soversion}.hmac \
-    crypto/fips/fips_standalone_hmac $RPM_BUILD_ROOT%{_libdir}/libssl.so.%{version} >$RPM_BUILD_ROOT%{_libdir}/.libssl.so.%{version}.hmac \
-    ln -sf .libssl.so.%{version}.hmac $RPM_BUILD_ROOT%{_libdir}/.libssl.so.%{soversion}.hmac \
-%{nil}
+OPENSSL_SYSTEM_CIPHERS_OVERRIDE=xyz_nonexistent_file
+export OPENSSL_SYSTEM_CIPHERS_OVERRIDE
+make test HARNESS_JOBS=8
+%endif
 
 %define __provides_exclude_from %{_libdir}/openssl
 
 %install
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 # Install OpenSSL.
-install -d $RPM_BUILD_ROOT{%{_bindir},%{_includedir},%{_libdir},%{_mandir},%{_libdir}/openssl}
-make INSTALL_PREFIX=$RPM_BUILD_ROOT install
-make INSTALL_PREFIX=$RPM_BUILD_ROOT install_docs
-mv $RPM_BUILD_ROOT%{_libdir}/engines $RPM_BUILD_ROOT%{_libdir}/openssl
-mv $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/man/* $RPM_BUILD_ROOT%{_mandir}/
-rmdir $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/man
+install -d $RPM_BUILD_ROOT{%{_bindir},%{_includedir},%{_libdir},%{_mandir},%{_libdir}/openssl,%{_pkgdocdir}}
+%make_install
 rename so.%{soversion} so.%{version} $RPM_BUILD_ROOT%{_libdir}/*.so.%{soversion}
-mkdir $RPM_BUILD_ROOT/%{_lib}
 for lib in $RPM_BUILD_ROOT%{_libdir}/*.so.%{version} ; do
 	chmod 755 ${lib}
 	ln -s -f `basename ${lib}` $RPM_BUILD_ROOT%{_libdir}/`basename ${lib} .%{version}`
 	ln -s -f `basename ${lib}` $RPM_BUILD_ROOT%{_libdir}/`basename ${lib} .%{version}`.%{soversion}
 done
 
+# Remove static libraries
+for lib in $RPM_BUILD_ROOT%{_libdir}/*.a ; do
+	rm -f ${lib}
+done
+
 # Install a makefile for generating keys and self-signed certs, and a script
 # for generating them on the fly.
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs
-install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs/Makefile
-install -m755 %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs/make-dummy-cert
-install -m755 %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs/renew-dummy-cert
+install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_pkgdocdir}/Makefile.certificate
+install -m755 %{SOURCE6} $RPM_BUILD_ROOT%{_bindir}/make-dummy-cert
+install -m755 %{SOURCE7} $RPM_BUILD_ROOT%{_bindir}/renew-dummy-cert
 
-# Make sure we actually include the headers we built against.
-for header in $RPM_BUILD_ROOT%{_includedir}/openssl/* ; do
-	if [ -f ${header} -a -f include/openssl/$(basename ${header}) ] ; then
-		install -m644 include/openssl/`basename ${header}` ${header}
-	fi
-done
+# Move runable perl scripts to bindir
+mv $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/misc/*.pl $RPM_BUILD_ROOT%{_bindir}
+mv $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/misc/tsget $RPM_BUILD_ROOT%{_bindir}
 
 # Rename man pages so that they don't conflict with other system man pages.
 pushd $RPM_BUILD_ROOT%{_mandir}
-ln -s -f config.5 man5/openssl.cnf.5
-for manpage in man*/* ; do
-	if [ -L ${manpage} ]; then
-		TARGET=`ls -l ${manpage} | awk '{ print $NF }'`
-		ln -snf ${TARGET}ssl ${manpage}ssl
-		rm -f ${manpage}
-	else
-		mv ${manpage} ${manpage}ssl
-	fi
-done
-for conflict in passwd rand ; do
-	rename ${conflict} ssl${conflict} man*/${conflict}*
-done
-popd
-
-# Pick a CA script.
-pushd  $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/misc
-mv CA.sh CA
+mv man5/config.5ossl man5/openssl.cnf.5
 popd
 
 mkdir -m755 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA
@@ -472,110 +221,118 @@ mkdir -m755 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA/certs
 mkdir -m755 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA/crl
 mkdir -m755 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA/newcerts
 
-# Ensure the openssl.cnf timestamp is identical across builds to avoid
+install -m644 %{SOURCE14} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/openssl_fips.cnf
+
+# Ensure the config file timestamps are identical across builds to avoid
 # mulitlib conflicts and unnecessary renames on upgrade
 touch -r %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/openssl.cnf
+touch -r %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/ct_log_list.cnf
+
+rm -f $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/openssl.cnf.dist
+rm -f $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/ct_log_list.cnf.dist
 
 # Determine which arch opensslconf.h is going to try to #include.
 basearch=%{_arch}
-%ifarch %{ix86}
-basearch=i386
-%endif
-%ifarch sparcv9
-basearch=sparc
-%endif
-%ifarch sparc64
-basearch=sparc64
-%endif
 
-%ifarch %{multilib_arches}
-# Do an opensslconf.h switcheroo to avoid file conflicts on systems where you
+# Next step of gradual disablement of SSL3.
+# Make SSL3 disappear to newly built dependencies.
+sed -i '/^\#ifndef OPENSSL_NO_SSL_TRACE/i\
+#ifndef OPENSSL_NO_SSL3\
+# define OPENSSL_NO_SSL3\
+#endif' $RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf.h
+
+# Do an configuration.h switcheroo to avoid file conflicts on systems where you
 # can have both a 32- and 64-bit version of the library, and they each need
 # their own correct-but-different versions of opensslconf.h to be usable.
 install -m644 %{SOURCE10} \
-	$RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf-${basearch}.h
-cat $RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf.h >> \
-	$RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf-${basearch}.h
+	$RPM_BUILD_ROOT/%{_prefix}/include/openssl/configuration-${basearch}.h
+cat $RPM_BUILD_ROOT/%{_prefix}/include/openssl/configuration.h >> \
+	$RPM_BUILD_ROOT/%{_prefix}/include/openssl/configuration-${basearch}.h
 install -m644 %{SOURCE9} \
-	$RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf.h
-%endif
+	$RPM_BUILD_ROOT/%{_prefix}/include/openssl/configuration.h
 
-# Remove unused files from upstream fips support
-rm -rf $RPM_BUILD_ROOT/%{_bindir}/openssl_fips_fingerprint
-rm -rf $RPM_BUILD_ROOT/%{_libdir}/fips_premain.*
-rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
-
-%clean
-[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+%__debug_install_post
+LD_LIBRARY_PATH=. apps/openssl fipsinstall \
+	-module $RPM_BUILD_ROOT%{_libdir}/ossl-modules/fips.so \
+	-out $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/fipsmodule.cnf
 
 %files
-%defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
-%license LICENSE
-%doc FAQ NEWS README
-%doc README.FIPS
-%doc README.legacy-settings
-%{_sysconfdir}/pki/tls/certs/make-dummy-cert
-%{_sysconfdir}/pki/tls/certs/renew-dummy-cert
-%{_sysconfdir}/pki/tls/certs/Makefile
-%{_sysconfdir}/pki/tls/misc/CA
-%dir %{_sysconfdir}/pki/CA
-%dir %{_sysconfdir}/pki/CA/private
-%dir %{_sysconfdir}/pki/CA/certs
-%dir %{_sysconfdir}/pki/CA/crl
-%dir %{_sysconfdir}/pki/CA/newcerts
-%{_sysconfdir}/pki/tls/misc/c_*
-%attr(0755,root,root) %{_bindir}/openssl
-%attr(0644,root,root) %{_mandir}/man1*/*
-%exclude %{_mandir}/man1*/*.pl*
-%exclude %{_mandir}/man1*/c_rehash*
-%exclude %{_mandir}/man1*/tsget*
-%attr(0644,root,root) %{_mandir}/man5*/*
-%attr(0644,root,root) %{_mandir}/man7*/*
+%license LICENSE.txt
+%doc NEWS.md README.md
+%{_bindir}/make-dummy-cert
+%{_bindir}/renew-dummy-cert
+%{_bindir}/openssl
+%{_mandir}/man1/*
+%{_mandir}/man5/*
+%{_mandir}/man7/*
+%{_pkgdocdir}/Makefile.certificate
+%exclude %{_mandir}/man1/*.pl*
+%exclude %{_mandir}/man1/tsget*
 
 %files libs
-%defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
-%license LICENSE
+%license LICENSE.txt
 %dir %{_sysconfdir}/pki/tls
 %dir %{_sysconfdir}/pki/tls/certs
 %dir %{_sysconfdir}/pki/tls/misc
 %dir %{_sysconfdir}/pki/tls/private
 %config(noreplace) %{_sysconfdir}/pki/tls/openssl.cnf
+%config(noreplace) %{_sysconfdir}/pki/tls/ct_log_list.cnf
 %attr(0755,root,root) %{_libdir}/libcrypto.so.%{version}
-%attr(0755,root,root) %{_libdir}/libcrypto.so.%{soversion}
+%{_libdir}/libcrypto.so.%{soversion}
 %attr(0755,root,root) %{_libdir}/libssl.so.%{version}
-%attr(0755,root,root) %{_libdir}/libssl.so.%{soversion}
-%attr(0644,root,root) %{_libdir}/.libcrypto.so.*.hmac
-%attr(0644,root,root) %{_libdir}/.libssl.so.*.hmac
-%attr(0755,root,root) %{_libdir}/openssl
+%{_libdir}/libssl.so.%{soversion}
+%attr(0755,root,root) %{_libdir}/engines-%{soversion}
+%attr(0755,root,root) %{_libdir}/ossl-modules
+%config %{_sysconfdir}/pki/tls/fipsmodule.cnf
+%config %{_sysconfdir}/pki/tls/openssl_fips.cnf
 
 %files devel
-%defattr(-,root,root)
-%doc doc/c-indentation.el doc/openssl.txt CHANGES
+%doc CHANGES.md doc/dir-locals.example.el doc/openssl-c-indent.el
 %{_prefix}/include/openssl
-%attr(0755,root,root) %{_libdir}/*.so
-%attr(0644,root,root) %{_mandir}/man3*/*
-%attr(0644,root,root) %{_libdir}/pkgconfig/*.pc
-
-%files static
-%defattr(-,root,root)
-%attr(0644,root,root) %{_libdir}/*.a
+%{_libdir}/*.so
+%{_mandir}/man3/*
+%{_libdir}/pkgconfig/*.pc
 
 %files perl
-%defattr(-,root,root)
-%attr(0755,root,root) %{_bindir}/c_rehash
-%attr(0644,root,root) %{_mandir}/man1*/*.pl*
-%attr(0644,root,root) %{_mandir}/man1*/c_rehash*
-%attr(0644,root,root) %{_mandir}/man1*/tsget*
-%{_sysconfdir}/pki/tls/misc/*.pl
-%{_sysconfdir}/pki/tls/misc/tsget
+%{_bindir}/c_rehash
+%{_bindir}/*.pl
+%{_bindir}/tsget
+%{_mandir}/man1/*.pl*
+%{_mandir}/man1/tsget*
+%dir %{_sysconfdir}/pki/CA
+%dir %{_sysconfdir}/pki/CA/private
+%dir %{_sysconfdir}/pki/CA/certs
+%dir %{_sysconfdir}/pki/CA/crl
+%dir %{_sysconfdir}/pki/CA/newcerts
 
-%post libs -p /sbin/ldconfig
-
-%postun libs -p /sbin/ldconfig
+%ldconfig_scriptlets libs
 
 %changelog
+* Thu Aug 07 2025 Andrii Sultanov <andriy.sultanov@vates.tech> - 3.0.9-2.0.1.2
+- Update to the upstream 3.0.9-2.0.1 package
+- Remove backported patches as OpenSSL 3.0.9 is not affected by the CVEs they
+  were fixing: openssl-1.0.2k-cve-2019-1547.backport.patch,
+  openssl-1.0.2k-cve-2019-1551.backport.patch, and
+  openssl-1.0.2k-cve-2019-1563.backport.patch
+- Remove a patch fixing a build time test as it's no longer necessary on 3.0.9:
+  openssl-1.0.2k-update-expiring-certificates.patch
+- *** Upstream changelog ***
+  * Thu Jan 02 2025 Deli Zhang <deli.zhang@cloud.com> - 3.0.9-2.0.1
+  - CP-52657: Fix CVE-2024-6119
+  - CP-52243: Remove new ciphers
+  - CP-50862: Add fips only config file
+  - CP-50299: Revert epoch=1
+  - CP-50299: Disable crypto-policies
+  - CP-50299: Build with devtoolset-11
+
+  * Thu Jul 27 2023 Lin Liu <lin.liu@citrix.com> - 3.0.9-2
+  - Restore basearch
+
+  * Thu Jul 27 2023 Lin Liu <lin.liu@citrix.com> - 3.0.9-1
+  - First imported release
+
 * Tue Oct 29 2024 Lucas Ravagnier <lucas.ravagnier@vates.tech> - 1:1.0.2k-26.2
 - Backport fix for CVEs: CVE-2019-1547, CVE-2019-1551, CVE-2019-1563
 
