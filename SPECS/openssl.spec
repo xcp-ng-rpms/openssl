@@ -15,7 +15,7 @@
 Summary: Utilities from the general purpose cryptography library with TLS implementation
 Name:    openssl
 Version: 3.0.9
-Release: %{?xsrel}.2%{?dist}
+Release: %{?xsrel}.3%{?dist}
 Epoch: 1
 %bcond_without test
 
@@ -68,6 +68,7 @@ BuildRequires: devtoolset-11-binutils
 BuildRequires: devtoolset-11-gcc
 Requires: coreutils
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Obsoletes: xs-openssl < 1:1.1.1k-12.2
 
 %description
 The OpenSSL toolkit provides support for secure communications between
@@ -78,6 +79,7 @@ protocols.
 %package libs
 Summary: A general purpose cryptography library with TLS implementation
 Requires: ca-certificates >= 2008-5
+Obsoletes: xs-openssl-libs < 1:1.1.1k-12.2
 
 %description libs
 OpenSSL is a toolkit for supporting cryptography. The openssl-libs
@@ -88,6 +90,7 @@ support cryptographic algorithms and protocols.
 Summary: Files for development of applications which will use OpenSSL
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: pkgconfig
+Obsoletes: xs-openssl-devel < 1:1.1.1k-12.2
 
 %description devel
 OpenSSL is a toolkit for supporting cryptography. The openssl-devel
@@ -98,6 +101,7 @@ support various cryptographic algorithms and protocols.
 Summary: Perl scripts provided with OpenSSL
 Requires: perl-interpreter
 Requires: %{name}%{?_isa} = %{epoch}:%{version}-%{release}
+Obsoletes: xs-openssl-perl < 1:1.1.1k-12.2
 
 %description perl
 OpenSSL is a toolkit for supporting cryptography. The openssl-perl
@@ -310,6 +314,9 @@ LD_LIBRARY_PATH=. apps/openssl fipsinstall \
 %ldconfig_scriptlets libs
 
 %changelog
+* Wed Feb 11 2026 Philippe Coval <philippe.coval@vates.tech> - 3.0.9-2.0.1.3
+- Replace xs-openssl package
+
 * Thu Aug 07 2025 Andrii Sultanov <andriy.sultanov@vates.tech> - 3.0.9-2.0.1.2
 - Update to the upstream 3.0.9-2.0.1 package
 - Remove backported patches as OpenSSL 3.0.9 is not affected by the CVEs they
