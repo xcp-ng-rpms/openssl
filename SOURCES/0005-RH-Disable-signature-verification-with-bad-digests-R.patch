@@ -1,15 +1,20 @@
-From 3f9deff30ae6efbfe979043b00cdf649b39793c0 Mon Sep 17 00:00:00 2001
-From: Tomas Mraz <tmraz@fedoraproject.org>
-Date: Thu, 24 Sep 2020 09:51:34 +0200
-Subject: Disable signature verification with totally unsafe hash algorithms
+From 04f1fc282cd5f5e7a9fbf2d82a62a9810d2e4acc Mon Sep 17 00:00:00 2001
+From: rpm-build <rpm-build>
+Date: Wed, 6 Mar 2024 19:17:14 +0100
+Subject: [PATCH 05/57] RH: Disable signature verification with bad digests -
+ REVIEW
 
-(was openssl-1.1.1-no-weak-verify.patch)
+Patch-name: 0006-Disable-signature-verification-with-totally-unsafe-h.patch
+Patch-id: 6
+Patch-status: |
+    # # Disable signature verification with totally unsafe hash algorithms
+From-dist-git-commit: 4334bc837fbc64d14890fdc51679a80770d498ce
 ---
  crypto/asn1/a_verify.c | 5 +++++
  1 file changed, 5 insertions(+)
 
 diff --git a/crypto/asn1/a_verify.c b/crypto/asn1/a_verify.c
-index b7eed914b0..af62f0ef08 100644
+index 55f86ee83f..95483afc00 100644
 --- a/crypto/asn1/a_verify.c
 +++ b/crypto/asn1/a_verify.c
 @@ -152,6 +152,11 @@ int ASN1_item_verify_ctx(const ASN1_ITEM *it, const X509_ALGOR *alg,
@@ -25,5 +30,5 @@ index b7eed914b0..af62f0ef08 100644
          const EVP_MD *type = NULL;
  
 -- 
-2.26.2
+2.52.0
 

@@ -1,0 +1,52 @@
+From fb65b33b118562b28e255e09e544e790a5733ebe Mon Sep 17 00:00:00 2001
+From: Mark Syms <mark.syms@citrix.com>
+Date: Thu, 26 Feb 2026 09:12:17 +0000
+Subject: [PATCH] For XenServer 8.4 retain support for SHA1 signatures
+
+The RHEL/CentOS/Fedora upstream has now disabled SHA1 by default but
+this would be a breaking change in XenServer 8.4. Revert the default
+setting back to enabled.
+---
+ crypto/context.c | 4 ++--
+ rh-openssl.cnf   | 3 ++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/crypto/context.c b/crypto/context.c
+index 6534e24c95..0ee788a58e 100644
+--- a/crypto/context.c
++++ b/crypto/context.c
+@@ -100,7 +100,7 @@ static void ossl_ctx_legacy_digest_signatures_free(void *vldsigs)
+ static void *ossl_ctx_legacy_digest_signatures_new(OSSL_LIB_CTX *ctx)
+ {
+     OSSL_LEGACY_DIGEST_SIGNATURES* ldsigs = OPENSSL_zalloc(sizeof(OSSL_LEGACY_DIGEST_SIGNATURES));
+-    ldsigs->allowed = 0;
++    ldsigs->allowed = 1;
+     return ldsigs;
+ }
+ 
+@@ -730,7 +730,7 @@ int ossl_ctx_legacy_digest_signatures_allowed(OSSL_LIB_CTX *libctx, int loadconf
+          return 1;
+  #endif
+ 
+-    return ldsigs != NULL ? ldsigs->allowed : 0;
++    return ldsigs != NULL ? ldsigs->allowed : 1;
+ }
+ 
+ int ossl_ctx_legacy_digest_signatures_allowed_set(OSSL_LIB_CTX *libctx, int allow,
+diff --git a/rh-openssl.cnf b/rh-openssl.cnf
+index fe2346eb2b..d6d845c7d0 100644
+--- a/rh-openssl.cnf
++++ b/rh-openssl.cnf
+@@ -82,7 +82,8 @@ system_default = crypto_policy
+ 
+ [ crypto_policy ]
+ 
+-.include = /etc/crypto-policies/back-ends/opensslcnf.config
++SignatureAlgorithms = ECDSA+SHA256:ECDSA+SHA384:ECDSA+SHA512:ed25519:ed448:rsa_pss_pss_sha256:rsa_pss_pss_sha384:rsa_pss_pss_sha512:rsa_pss_rsae_sha256:rsa_pss_rsae_sha384:rsa_pss_rsae_sha512:RSA+SHA256:RSA+SHA384:RSA+SHA512:ECDSA+SHA224:RSA+SHA224
++
+ 
+ ####################################################################
+ [ ca ]
+-- 
+2.53.0
+
