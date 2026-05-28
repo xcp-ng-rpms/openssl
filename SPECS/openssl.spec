@@ -26,134 +26,84 @@ print(string.sub(hash, 0, 16))
 
 %global _performance_build 1
 
+# https://fedoraproject.org/wiki/Changes/OpensslDeprecateEngine
+# ENGINE is deprecated but still (separately) available for Fedora.
+# It has been completely removed from RHEL 10 and later.
+%bcond engine %[!(0%{?rhel} >= 10)]
+
 Summary: Utilities from the general purpose cryptography library with TLS implementation
 Name: openssl
-Version: 3.0.9
-Release: 2%{?dist}
+Version: 3.5.5
+Release: 1%{?dist}
 Epoch: 1
-Source: openssl-%{version}.tar.gz
-Source2: Makefile.certificate
+Source0: openssl-%{version}.tar.gz
+Source1: fips-hmacify.sh
 Source3: genpatches
 Source4: openssl.rpmlintrc
-Source6: make-dummy-cert
-Source7: renew-dummy-cert
 Source9: configuration-switch.h
 Source10: configuration-prefix.h
-Source14: 0025-for-tests.patch
 
-# Patches exported from source git
-# Aarch64 and ppc64le use lib64
-Patch1: 0001-Aarch64-and-ppc64le-use-lib64.patch
-# Use more general default values in openssl.cnf
-Patch2: 0002-Use-more-general-default-values-in-openssl.cnf.patch
-# Do not install html docs
-Patch3: 0003-Do-not-install-html-docs.patch
-# Override default paths for the CA directory tree
-Patch4: 0004-Override-default-paths-for-the-CA-directory-tree.patch
-# apps/ca: fix md option help text
-Patch5: 0005-apps-ca-fix-md-option-help-text.patch
-# Disable signature verification with totally unsafe hash algorithms
-Patch6: 0006-Disable-signature-verification-with-totally-unsafe-h.patch
-# Add support for PROFILE=SYSTEM system default cipherlist
-Patch7: 0007-Add-support-for-PROFILE-SYSTEM-system-default-cipher.patch
-# Add FIPS_mode() compatibility macro
-Patch8: 0008-Add-FIPS_mode-compatibility-macro.patch
-# Add check to see if fips flag is enabled in kernel
-Patch9: 0009-Add-Kernel-FIPS-mode-flag-support.patch
-# Instead of replacing ectest.c and ec_curve.c, add the changes as a patch so
-# that new modifications made to these files by upstream are not lost. 
-Patch10: 0010-Add-changes-to-ectest-and-eccurve.patch
-# remove unsupported EC curves
-Patch11: 0011-Remove-EC-curves.patch
-# Disable explicit EC curves
-# https://bugzilla.redhat.com/show_bug.cgi?id=2066412
-Patch12: 0012-Disable-explicit-ec.patch
-#Skipped tests from former 0011-Remove-EC-curves.patch
-Patch13: 0013-skipped-tests-EC-curves.patch
-# Instructions to load legacy provider in openssl.cnf
-Patch24: 0024-load-legacy-prov.patch
-# Tmp: test name change
-Patch31: 0031-tmp-Fix-test-names.patch
-# We load FIPS provider and set FIPS properties implicitly
-Patch32: 0032-Force-fips.patch
-# Embed HMAC into the fips.so
-Patch33: 0033-FIPS-embed-hmac.patch
-# Comment out fipsinstall command-line utility
-Patch34: 0034.fipsinstall_disable.patch
-# Skip unavailable algorithms running `openssl speed`
-Patch35: 0035-speed-skip-unavailable-dgst.patch
-# Extra public/private key checks required by FIPS-140-3
-Patch44: 0044-FIPS-140-3-keychecks.patch
-# Minimize fips services
-Patch45: 0045-FIPS-services-minimize.patch
-# Execute KATS before HMAC verification
-Patch47: 0047-FIPS-early-KATS.patch
-%if 0%{?rhel}
-# Selectively disallow SHA1 signatures
-Patch49: 0049-Selectively-disallow-SHA1-signatures.patch
-%else
-# Selectively disallow SHA1 signatures rhbz#2070977
-Patch49: 0049-Allow-disabling-of-SHA1-signatures.patch
+Patch0001: 0001-RH-Aarch64-and-ppc64le-use-lib64.patch
+Patch0002: 0002-Add-a-separate-config-file-to-use-for-rpm-installs.patch
+Patch0003: 0003-RH-Do-not-install-html-docs.patch
+Patch0004: 0004-RH-apps-ca-fix-md-option-help-text.patch-DROP.patch
+Patch0005: 0005-RH-Disable-signature-verification-with-bad-digests-R.patch
+Patch0006: 0006-RH-Add-support-for-PROFILE-SYSTEM-system-default-cip.patch
+Patch0007: 0007-RH-Add-FIPS_mode-compatibility-macro.patch
+Patch0008: 0008-RH-Add-Kernel-FIPS-mode-flag-support-FIXSTYLE.patch
+Patch0009: 0009-RH-Drop-weak-curve-definitions-RENAMED-SQUASHED.patch
+Patch0010: 0010-RH-Disable-explicit-ec-curves.patch
+Patch0011: 0011-RH-skipped-tests-EC-curves.patch
+Patch0012: 0012-RH-skip-quic-pairwise.patch
+Patch0013: 0013-RH-version-aliasing.patch
+Patch0014: 0014-RH-Export-two-symbols-for-OPENSSL_str-n-casecmp.patch
+Patch0015: 0015-RH-TMP-KTLS-test-skip.patch
+Patch0016: 0016-RH-Allow-disabling-of-SHA1-signatures.patch
+Patch0017: 0017-FIPS-Red-Hat-s-FIPS-module-name-and-version.patch
+Patch0018: 0018-FIPS-disable-fipsinstall.patch
+Patch0019: 0019-FIPS-Force-fips-provider-on.patch
+Patch0020: 0020-FIPS-INTEG-CHECK-Embed-hmac-in-fips.so-NOTE.patch
+Patch0021: 0021-FIPS-INTEG-CHECK-Add-script-to-hmac-ify-fips.so.patch
+Patch0022: 0022-FIPS-INTEG-CHECK-Execute-KATS-before-HMAC-REVIEW.patch
+Patch0023: 0023-FIPS-RSA-encrypt-limits-REVIEW.patch
+Patch0024: 0024-FIPS-RSA-PCTs.patch
+Patch0025: 0025-FIPS-RSA-encapsulate-limits.patch
+Patch0026: 0026-FIPS-RSA-Disallow-SHAKE-in-OAEP-and-PSS.patch
+Patch0027: 0027-FIPS-RSA-size-mode-restrictions.patch
+Patch0028: 0028-FIPS-RSA-Mark-x931-as-not-approved-by-default.patch
+Patch0029: 0029-FIPS-RSA-Remove-X9.31-padding-signatures-tests.patch
+Patch0030: 0030-FIPS-RSA-NEEDS-REWORK-FIPS-Use-OAEP-in-KATs-support-.patch
+Patch0031: 0031-FIPS-Deny-SHA-1-signature-verification.patch
+Patch0032: 0032-FIPS-RAND-FIPS-140-3-DRBG-NEEDS-REVIEW.patch
+Patch0033: 0033-FIPS-RAND-Forbid-truncated-hashes-SHA-3.patch
+Patch0034: 0034-FIPS-PBKDF2-Set-minimum-password-length.patch
+Patch0035: 0035-FIPS-DH-PCT.patch
+Patch0036: 0036-FIPS-DH-Disable-FIPS-186-4-type-parameters.patch
+Patch0037: 0037-FIPS-TLS-Enforce-EMS-in-TLS-1.2-NOTE.patch
+Patch0038: 0038-FIPS-CMS-Set-default-padding-to-OAEP.patch
+Patch0039: 0039-FIPS-PKCS12-PBMAC1-defaults.patch
+Patch0040: 0040-FIPS-Fix-encoder-decoder-negative-test.patch
+Patch0041: 0041-FIPS-EC-DH-DSA-PCTs.patch
+Patch0042: 0042-FIPS-EC-disable-weak-curves.patch
+Patch0043: 0043-FIPS-NO-DSA-Support.patch
+Patch0044: 0044-FIPS-NO-DES-support.patch
+Patch0045: 0045-FIPS-NO-Kmac.patch
+Patch0046: 0046-FIPS-Fix-some-tests-due-to-our-versioning-change.patch
+Patch0047: 0047-Current-Rebase-status.patch
+Patch0048: 0048-FIPS-KDF-key-lenght-errors.patch
+Patch0049: 0049-FIPS-fix-disallowed-digests-tests.patch
+Patch0050: 0050-Make-openssl-speed-run-in-FIPS-mode.patch
+Patch0051: 0051-Backport-upstream-27483-for-PKCS11-needs.patch
+Patch0052: 0052-Red-Hat-9-FIPS-indicator-defines.patch
+%if ( %{defined rhel} && (! %{defined centos}) && (! %{defined eln}) )
+Patch0053: 0053-Allow-hybrid-MLKEM-in-FIPS-mode.patch
 %endif
-# Backport of patch for RHEL for Edge rhbz #2027261
-Patch51: 0051-Support-different-R_BITS-lengths-for-KBKDF.patch
-%if 0%{?rhel}
-# Allow SHA1 in seclevel 2 if rh-allow-sha1-signatures = yes
-Patch52: 0052-Allow-SHA1-in-seclevel-2-if-rh-allow-sha1-signatures.patch
-%else
-# Support SHA1 in TLS in LEGACY crypto-policy (which is SECLEVEL=1)
-Patch52: 0052-Allow-SHA1-in-seclevel-1-if-rh-allow-sha1-signatures.patch
-%endif
-%if 0%{?rhel}
-# no USDT probe instrumentation required
-%else
-# Instrument with USDT probes related to SHA-1 deprecation
-Patch53: 0053-Add-SHA1-probes.patch
-%endif
-# https://github.com/openssl/openssl/pull/18103
-# The patch is incorporated in 3.0.3 but we provide this function since 3.0.1
-# so the patch should persist
-Patch56: 0056-strcasecmp.patch
-# https://github.com/openssl/openssl/pull/18175
-# Patch57: 0057-strcasecmp-fix.patch
-# https://bugzilla.redhat.com/show_bug.cgi?id=2053289
-Patch58: 0058-FIPS-limit-rsa-encrypt.patch
-# https://bugzilla.redhat.com/show_bug.cgi?id=2069235
-Patch60: 0060-FIPS-KAT-signature-tests.patch
-# https://bugzilla.redhat.com/show_bug.cgi?id=2087147
-Patch61: 0061-Deny-SHA-1-signature-verification-in-FIPS-provider.patch
-Patch62: 0062-fips-Expose-a-FIPS-indicator.patch
-# https://github.com/openssl/openssl/commit/44a563dde1584cd9284e80b6e45ee5019be8d36c
-# https://github.com/openssl/openssl/commit/345c99b6654b8313c792d54f829943068911ddbd
-# Regression on Power8, see rhbz2124845, https://github.com/openssl/openssl/issues/19163; fix in 0079-Fix-AES-GCM-on-Power-8-CPUs.patch
-Patch71: 0071-AES-GCM-performance-optimization.patch
-# https://github.com/openssl/openssl/commit/f596bbe4da779b56eea34d96168b557d78e1149
-# https://github.com/openssl/openssl/commit/7e1f3ffcc5bc15fb9a12b9e3bb202f544c6ed5aa
-# hunks in crypto/ppccap.c from https://github.com/openssl/openssl/commit/f5485b97b6c9977c0d39c7669b9f97a879312447
-Patch72: 0072-ChaCha20-performance-optimizations-for-ppc64le.patch
-# https://bugzilla.redhat.com/show_bug.cgi?id=2102535
-Patch73: 0073-FIPS-Use-OAEP-in-KATs-support-fixed-OAEP-seed.patch
-# https://bugzilla.redhat.com/show_bug.cgi?id=2102535
-%if 0%{?rhel}
-Patch74: 0074-FIPS-Use-digest_sign-digest_verify-in-self-test-eln.patch
-%else
-Patch74: 0074-FIPS-Use-digest_sign-digest_verify-in-self-test.patch
-%endif
-# https://bugzilla.redhat.com/show_bug.cgi?id=2102535
-Patch75: 0075-FIPS-Use-FFDHE2048-in-self-test.patch
-# Downstream only. Reseed DRBG using getrandom(GRND_RANDOM)
-# https://bugzilla.redhat.com/show_bug.cgi?id=2102541
-Patch76: 0076-FIPS-140-3-DRBG.patch
-# https://bugzilla.redhat.com/show_bug.cgi?id=2102542
-Patch77: 0077-FIPS-140-3-zeroization.patch
-# https://bugzilla.redhat.com/show_bug.cgi?id=2114772
-Patch78: 0078-Add-FIPS-indicator-parameter-to-HKDF.patch
-# https://bugzilla.redhat.com/show_bug.cgi?id=2124845, https://github.com/openssl/openssl/pull/19182
-Patch79: 0079-Fix-AES-GCM-on-Power-8-CPUs.patch
-# https://github.com/openssl/openssl/pull/13817
-Patch100: 0100-RSA-PKCS15-implicit-rejection.patch
+Patch0054: 0054-Temporarily-disable-SLH-DSA-FIPS-self-tests.patch
+Patch0055: 0055-Add-a-define-to-disable-symver-attributes.patch
+Patch0056: 0056-Add-targets-to-skip-build-of-non-installable-program.patch
+Patch0057: 0057-Disable-RSA-PKCS1.5-FIPS-POST-not-relevant-for-RHEL.patch
 
-License: ASL 2.0
+License: Apache-2.0
 URL: http://www.openssl.org/
 BuildRequires: gcc g++
 BuildRequires: coreutils, perl-interpreter, sed, zlib-devel, /usr/bin/cmp
@@ -163,12 +113,13 @@ BuildRequires: /usr/bin/pod2man
 BuildRequires: /usr/sbin/sysctl
 BuildRequires: perl(Test::Harness), perl(Test::More), perl(Math::BigInt)
 BuildRequires: perl(Module::Load::Conditional), perl(File::Temp)
-BuildRequires: perl(Time::HiRes), perl(IPC::Cmd), perl(Pod::Html), perl(Digest::SHA)
+BuildRequires: perl(Time::HiRes), perl(Time::Piece), perl(IPC::Cmd), perl(Pod::Html), perl(Digest::SHA)
 BuildRequires: perl(FindBin), perl(lib), perl(File::Compare), perl(File::Copy), perl(bigint)
 BuildRequires: git-core
 BuildRequires: systemtap-sdt-devel
 Requires: coreutils
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Obsoletes: oqsprovider < 0.9.0
 
 %description
 The OpenSSL toolkit provides support for secure communications between
@@ -180,7 +131,10 @@ protocols.
 Summary: A general purpose cryptography library with TLS implementation
 Requires: ca-certificates >= 2008-5
 Requires: crypto-policies >= 20180730
-Recommends: openssl-pkcs11%{?_isa}
+Recommends: pkcs11-provider%{?_isa}
+%if ( %{defined rhel} && (! %{defined centos}) && (! %{defined eln}) )
+Requires: openssl-fips-provider
+%endif
 
 %description libs
 OpenSSL is a toolkit for supporting cryptography. The openssl-libs
@@ -191,11 +145,28 @@ support cryptographic algorithms and protocols.
 Summary: Files for development of applications which will use OpenSSL
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: pkgconfig
+%if %{without engine}
+Obsoletes: %{name}-devel-engine < %{epoch}:%{version}-%{release}
+%endif
 
 %description devel
 OpenSSL is a toolkit for supporting cryptography. The openssl-devel
 package contains include files needed to develop applications which
 support various cryptographic algorithms and protocols.
+
+%if %{with engine}
+%package devel-engine
+Summary: Files for development of applications which will use OpenSSL and use deprecated ENGINE API.
+Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: %{name}-devel%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: pkgconfig
+Provides: deprecated()
+
+%description devel-engine
+OpenSSL is a toolkit for supporting cryptography. The openssl-devel-engine
+package contains include files needed to develop applications which
+use deprecated OpenSSL ENGINE functionality.
+%endif
 
 %package perl
 Summary: Perl scripts provided with OpenSSL
@@ -267,7 +238,7 @@ sslarch="linux64-mips64 -mips64r2"
 sslflags=enable-ec_nistp_64_gcc_128
 %endif
 %ifarch riscv64
-sslarch=linux-generic64
+sslarch=linux64-riscv64
 %endif
 ktlsopt=enable-ktls
 %ifarch armv7hl
@@ -289,17 +260,21 @@ export HASHBANGPERL=/usr/bin/perl
 # RPM_OPT_FLAGS, so we can skip specifiying them here.
 ./Configure \
 	--prefix=%{_prefix} --openssldir=%{_sysconfdir}/pki/tls ${sslflags} \
-	--system-ciphers-file=%{_sysconfdir}/crypto-policies/back-ends/openssl.config \
+%ifarch riscv64
+        --libdir=%{_lib} \
+%endif
+	--system-ciphers-file=%{_sysconfdir}/crypto-policies/back-ends/opensslcnf.config \
 	zlib enable-camellia enable-seed enable-rfc3779 enable-sctp \
-	enable-cms enable-md2 enable-rc5 ${ktlsopt} enable-fips\
-	no-mdc2 no-ec2m no-sm2 no-sm4 enable-buildtest-c++\
-	shared  ${sslarch} $RPM_OPT_FLAGS '-DDEVRANDOM="\"/dev/urandom\"" -DREDHAT_FIPS_VERSION="\"%{fips}\""'\
+	enable-cms enable-md2 enable-rc5 ${ktlsopt} enable-fips -D_GNU_SOURCE\
+	no-mdc2 no-ec2m no-sm2 no-sm4 no-atexit enable-buildtest-c++\
+	shared  ${sslarch} $RPM_OPT_FLAGS '-DDEVRANDOM="\"/dev/urandom\""' -DOPENSSL_PEDANTIC_ZEROIZATION\
+	-DREDHAT_FIPS_VENDOR='"\"Red Hat Enterprise Linux OpenSSL FIPS Provider\""' -DREDHAT_FIPS_VERSION='"\"%{fips}\""'\
 	-Wl,--allow-multiple-definition
 
 # Do not run this in a production package the FIPS symbols must be patched-in
 #util/mkdef.pl crypto update
 
-make -s %{?_smp_mflags} all
+make -s %{?_smp_mflags} build_inst_sw
 
 # Clean up the .pc files
 for i in libcrypto.pc libssl.pc openssl.pc ; do
@@ -316,38 +291,47 @@ done
  touch -r configdata.pm configdata.pm.new && \
  mv -f configdata.pm.new configdata.pm)
 
-# We must revert patch4 before tests otherwise they will fail
-patch -p1 -R < %{PATCH4}
-#We must disable default provider before tests otherwise they will fail
-patch -p1 < %{SOURCE14}
 
 OPENSSL_ENABLE_MD5_VERIFY=
 export OPENSSL_ENABLE_MD5_VERIFY
-%if 0%{?rhel}
 OPENSSL_ENABLE_SHA1_SIGNATURES=
 export OPENSSL_ENABLE_SHA1_SIGNATURES
-%endif
 OPENSSL_SYSTEM_CIPHERS_OVERRIDE=xyz_nonexistent_file
 export OPENSSL_SYSTEM_CIPHERS_OVERRIDE
 #embed HMAC into fips provider for test run
-LD_LIBRARY_PATH=. apps/openssl dgst -binary -sha256 -mac HMAC -macopt hexkey:f4556650ac31d35461610bac4ed81b1a181b2d8a43ea2854cbae22ca74560813 < providers/fips.so > providers/fips.so.hmac
-objcopy --update-section .rodata1=providers/fips.so.hmac providers/fips.so providers/fips.so.mac
-mv providers/fips.so.mac providers/fips.so
-#run tests itself
+#dd if=/dev/zero bs=1 count=32 of=tmp.mac
+#objcopy --update-section .rodata1=tmp.mac providers/fips.so providers/fips.so.zeromac
+#mv providers/fips.so.zeromac providers/fips.so
+#rm tmp.mac
+#LD_LIBRARY_PATH=. apps/openssl dgst -binary -sha256 -mac HMAC -macopt hexkey:f4556650ac31d35461610bac4ed81b1a181b2d8a43ea2854cbae22ca74560813 < providers/fips.so > providers/fips.so.hmac
+#objcopy --update-section .rodata1=providers/fips.so.hmac providers/fips.so providers/fips.so.mac
+#mv providers/fips.so.mac providers/fips.so
+%{SOURCE1} providers/fips.so
+
+# Build tests with LTO disabled and run them
+make -s %{?_smp_mflags} build_programs \
+    CFLAGS="%{build_cflags} -fno-lto" \
+    CXXFLAGS="%{build_cxxflags} -fno-lto"
 make test HARNESS_JOBS=8
 
 # Add generation of HMAC checksum of the final stripped library
 # We manually copy standard definition of __spec_install_post
 # and add hmac calculation/embedding to fips.so
+%if ( %{defined rhel} && (! %{defined centos}) && (! %{defined eln}) )
+%define __spec_install_post \
+    rm -rf $RPM_BUILD_ROOT/%{_libdir}/ossl-modules/fips.so \
+    %{?__debug_package:%{__debug_install_post}} \
+    %{__arch_install_post} \
+    %{__os_install_post} \
+%{nil}
+%else
 %define __spec_install_post \
     %{?__debug_package:%{__debug_install_post}} \
     %{__arch_install_post} \
     %{__os_install_post} \
-    LD_LIBRARY_PATH=. apps/openssl dgst -binary -sha256 -mac HMAC -macopt hexkey:f4556650ac31d35461610bac4ed81b1a181b2d8a43ea2854cbae22ca74560813 < $RPM_BUILD_ROOT%{_libdir}/ossl-modules/fips.so > $RPM_BUILD_ROOT%{_libdir}/ossl-modules/fips.so.hmac \
-    objcopy --update-section .rodata1=$RPM_BUILD_ROOT%{_libdir}/ossl-modules/fips.so.hmac $RPM_BUILD_ROOT%{_libdir}/ossl-modules/fips.so $RPM_BUILD_ROOT%{_libdir}/ossl-modules/fips.so.mac \
-    mv $RPM_BUILD_ROOT%{_libdir}/ossl-modules/fips.so.mac $RPM_BUILD_ROOT%{_libdir}/ossl-modules/fips.so \
-    rm $RPM_BUILD_ROOT%{_libdir}/ossl-modules/fips.so.hmac \
+    %{SOURCE1} $RPM_BUILD_ROOT/%{_libdir}/ossl-modules/fips.so \
 %{nil}
+%endif
 
 %define __provides_exclude_from %{_libdir}/openssl
 
@@ -362,18 +346,15 @@ for lib in $RPM_BUILD_ROOT%{_libdir}/*.so.%{version} ; do
 	ln -s -f `basename ${lib}` $RPM_BUILD_ROOT%{_libdir}/`basename ${lib} .%{version}`
 	ln -s -f `basename ${lib}` $RPM_BUILD_ROOT%{_libdir}/`basename ${lib} .%{version}`.%{soversion}
 done
+mv rh-openssl.cnf $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/openssl.cnf
 
 # Remove static libraries
 for lib in $RPM_BUILD_ROOT%{_libdir}/*.a ; do
 	rm -f ${lib}
 done
 
-# Install a makefile for generating keys and self-signed certs, and a script
-# for generating them on the fly.
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs
-install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_pkgdocdir}/Makefile.certificate
-install -m755 %{SOURCE6} $RPM_BUILD_ROOT%{_bindir}/make-dummy-cert
-install -m755 %{SOURCE7} $RPM_BUILD_ROOT%{_bindir}/renew-dummy-cert
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/openssl.d
 
 # Move runable perl scripts to bindir
 mv $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/misc/*.pl $RPM_BUILD_ROOT%{_bindir}
@@ -392,8 +373,8 @@ mkdir -m755 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA/newcerts
 
 # Ensure the config file timestamps are identical across builds to avoid
 # mulitlib conflicts and unnecessary renames on upgrade
-touch -r %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/openssl.cnf
-touch -r %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/ct_log_list.cnf
+touch -r %{SOURCE0} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/openssl.cnf
+touch -r %{SOURCE0} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/ct_log_list.cnf
 
 rm -f $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/openssl.cnf.dist
 rm -f $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/ct_log_list.cnf.dist
@@ -412,12 +393,11 @@ basearch=sparc
 basearch=sparc64
 %endif
 
-# Next step of gradual disablement of SSL3.
-# Make SSL3 disappear to newly built dependencies.
-sed -i '/^\#ifndef OPENSSL_NO_SSL_TRACE/i\
-#ifndef OPENSSL_NO_SSL3\
-# define OPENSSL_NO_SSL3\
-#endif' $RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf.h
+# Next step of gradual disablement of ENGINE.
+sed -i '/^\# ifndef OPENSSL_NO_STATIC_ENGINE/i\
+# if %{?with_engine:!__has_include(<openssl/engine.h>) &&} !defined(OPENSSL_NO_ENGINE)\
+#  define OPENSSL_NO_ENGINE\
+# endif' $RPM_BUILD_ROOT/%{_prefix}/include/openssl/configuration.h
 
 %ifarch %{multilib_arches}
 # Do an configuration.h switcheroo to avoid file conflicts on systems where you
@@ -430,18 +410,16 @@ cat $RPM_BUILD_ROOT/%{_prefix}/include/openssl/configuration.h >> \
 install -m644 %{SOURCE9} \
 	$RPM_BUILD_ROOT/%{_prefix}/include/openssl/configuration.h
 %endif
+ln -s /etc/crypto-policies/back-ends/openssl_fips.config $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/fips_local.cnf
 
 %files
 %{!?_licensedir:%global license %%doc}
 %license LICENSE.txt
 %doc NEWS.md README.md
-%{_bindir}/make-dummy-cert
-%{_bindir}/renew-dummy-cert
 %{_bindir}/openssl
 %{_mandir}/man1/*
 %{_mandir}/man5/*
 %{_mandir}/man7/*
-%{_pkgdocdir}/Makefile.certificate
 %exclude %{_mandir}/man1/*.pl*
 %exclude %{_mandir}/man1/tsget*
 
@@ -452,8 +430,10 @@ install -m644 %{SOURCE9} \
 %dir %{_sysconfdir}/pki/tls/certs
 %dir %{_sysconfdir}/pki/tls/misc
 %dir %{_sysconfdir}/pki/tls/private
+%dir %{_sysconfdir}/pki/tls/openssl.d
 %config(noreplace) %{_sysconfdir}/pki/tls/openssl.cnf
 %config(noreplace) %{_sysconfdir}/pki/tls/ct_log_list.cnf
+%config %{_sysconfdir}/pki/tls/fips_local.cnf
 %attr(0755,root,root) %{_libdir}/libcrypto.so.%{version}
 %{_libdir}/libcrypto.so.%{soversion}
 %attr(0755,root,root) %{_libdir}/libssl.so.%{version}
@@ -464,9 +444,20 @@ install -m644 %{SOURCE9} \
 %files devel
 %doc CHANGES.md doc/dir-locals.example.el doc/openssl-c-indent.el
 %{_prefix}/include/openssl
+%exclude %{_prefix}/include/openssl/engine*.h
 %{_libdir}/*.so
 %{_mandir}/man3/*
+%exclude %{_mandir}/man3/ENGINE*
 %{_libdir}/pkgconfig/*.pc
+%{_libdir}/cmake/OpenSSL/OpenSSLConfig.cmake
+%{_libdir}/cmake/OpenSSL/OpenSSLConfigVersion.cmake
+
+
+%if %{with engine}
+%files devel-engine
+%{_prefix}/include/openssl/engine*.h
+%{_mandir}/man3/ENGINE*
+%endif
 
 %files perl
 %{_bindir}/c_rehash
@@ -483,17 +474,189 @@ install -m644 %{SOURCE9} \
 %ldconfig_scriptlets libs
 
 %changelog
-* Thu Jul 27 2023 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.0.9-2
-- Forbid custom EC more completely
-  Resolves: rhbz#2223953
+* Wed Jan 28 2026 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.5.5-1
+- Rebase to OpenSSL 3.5.5, resolving CVE-2025-15467, CVE-2025-15468,
+  CVE-2025-15469, CVE-2025-66199, CVE-2025-68160, CVE-2025-69418, CVE-2025-69420,
+  CVE-2025-69421, CVE-2025-69419, CVE-2026-22795, CVE-2026-22796, CVE-2025-11187
 
-* Wed May 31 2023 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.0.9-1
-- Rebase to upstream version 3.0.9
+* Fri Jan 16 2026 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.5.4-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_44_Mass_Rebuild
+
+* Wed Oct 15 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.5.4-1
+- Rebase to OpenSSL 3.5.4, resolving CVE-2025-9230 and CVE-2025-9232
+
+* Thu Sep 04 2025 Pavol Žáčik <pzacik@redhat.com> - 1:3.5.1-4
+- Fix globally disabled LTO
+
+* Tue Aug 26 2025 Pavol Žáčik <pzacik@redhat.com> - 1:3.5.1-3
+- Make openssl speed test signatures without errors
+- Build tests in check and without LTO
+
+* Thu Jul 24 2025 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.5.1-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_43_Mass_Rebuild
+
+* Tue Jul 01 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.5.1-1
+- Rebasing to OpenSSL 3.5.1
+
+* Thu Jun 05 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.5.0-5
+- Sync patches from RHEL
+
+* Thu Apr 24 2025 Yaakov Selkowitz <yselkowi@redhat.com> - 1:3.5.0-4
+- Disable -devel-engine on RHEL 10+
+
+* Tue Apr 15 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.5.0-3
+- Rebase to OpenSSL 3.5 final release, sync patches with RHEL. Restoring POWER8 support
+  Resolves: rhbz#2359082
+
+* Wed Mar 26 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.5.0-2
+- Early rebasing to OpenSSL 3.5-beta
+
+* Fri Mar 21 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.5.0-1
+- Early rebasing to OpenSSL 3.5-alpha
+
+* Thu Mar 13 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.2.4-3
+- Proper providing of default cipher string file on compilation
+  Build with no-atexit similar to CentOS/RHEL
+
+* Tue Feb 25 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.2.4-2
+- Deprecating a proper subpackage
+  Related: rhbz#2276420
+
+* Wed Feb 12 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.2.4-1
+- Rebase to 3.2.4
+  Resolves: CVE-2024-12797
+
+* Wed Jan 29 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.2.2-14
+- Fixup for loading default cipher string
+  Resolves: rhbz#2342801
+
+* Mon Jan 27 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.2.2-13
+- Locally configured providers should not interfere with openssl build-time tests
+- Load system default cipher string from crypto-policies configuration file
+  include /etc/crypto-policies/back-ends/opensslcnf.config and remove
+  /etc/crypto-policies/back-ends/openssl.config.
+
+* Fri Jan 17 2025 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.2.2-12
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_42_Mass_Rebuild
+
+* Wed Jan 08 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.2.2-11
+- Ensure that the checksum of the fips provider is calculated correctly
+  Resolves: rhbz#2335414
+
+* Thu Jan 02 2025 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.2.2-10
+- Fix provider no_cache behaviour
+
+* Wed Sep 25 2024 Lokesh Mandvekar <lsm5@fedoraproject.org> - 1:3.2.2-9
+- Add PQ container test via TMT
+
+* Thu Sep 12 2024 Sahana Prasad <sahana@redhat.com> - 1:3.2.2-8
+- Synchorize patches in CentOS10 and Fedora with the following changes
+- Fix CVE-2024-5535: SSL_select_next_proto buffer overread
+- Use PBMAC1 by default when creating PKCS#12 files in FIPS mode
+- Support key encapsulation/decapsulation in openssl pkeyutl command
+- Fix typo in the patch numeration
+- Enable KTLS, temporary disable KTLS tests
+- Speedup SSL_add_{file,dir}_cert_subjects_to_stack
+- Resolve SAST package scan results
+- An interface to create PKCS #12 files in FIPS compliant way
+
+* Fri Sep 06 2024 Sahana Prasad <sahana@redhat.com> - 1:3.2.2-7
+- Patch for CVE-2024-6119
+
+* Tue Sep 03 2024 Yaakov Selkowitz <yselkowi@redhat.com> - 1:3.2.2-6
+- Define OPENSSL_NO_ENGINE if openssl-devel-engine is not installed
+
+* Thu Jul 18 2024 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.2.2-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_41_Mass_Rebuild
+
+* Tue Jul 09 2024 Sahana Prasad  <sahana@redhat.com> - 1:3.2.2-4
+- Assign IANA numbers for hybrid PQ KEX
+- Porting the fix in https://github.com/openssl/openssl/pull/22803
+
+* Mon Jul 01 2024 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.2.2-3
+- Moving engine-related files to a separate subpackage to be deprecated in future
+  Resolves: rhbz#2276420
+
+* Thu Jun 27 2024 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.2.2-2
+- As upstream disables TLS 1.0/1.1 on any SECLEVEL > 0, there is no point
+  keeping the SHA1 permission at SECLEVEL=1 anymore.
+
+* Thu Jun 06 2024 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.2.2-1
+- Rebase to 3.2.2
+
+* Wed Jun 05 2024 Yaakov Selkowitz <yselkowi@redhat.com> - 1:3.2.1-10
+- Do not require openssl-fips-provider on ELN
+
+* Mon Jun 03 2024 Sahana Prasad <sahana@redhat.com> - 1:3.2.1-9
+- Synchronize patches from CentOS 9 that had additional fixes required
+  for rebase to 3.2.1
+
+* Tue May 28 2024 Alexander Sosedkin <asosedkin@redhat.com> - 1:3.2.1-8
+- Instrument with USDT probes related to SHA-1 deprecation
+
+* Tue May 14 2024 David Abdurachmanov <davidlt@rivosinc.com> - 1:3.2.1-7
+- Add --libdir=%{_lib} for riscv64 (uses linux-generic64)
+
+* Thu Apr 04 2024 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.2.1-6
+- Restoring missing part of 0044-
+- Backporting CMS FIPS defaults from CentOS 9
+
+* Mon Mar 25 2024 Sahana Prasad <sahana@redhat.com> - 1:3.2.1-5
+- Add no-engine support. The previous commit was a mistake.
+
+* Mon Mar 25 2024 Sahana Prasad <sahana@redhat.com> - 1:3.2.1-4
+- Build OpenSSL with no-engine support
+
+* Thu Mar 07 2024 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.2.1-3
+- Minimize skipping tests
+- Allow ignoring unknown signature algorithms and groups (upstream #23050)
+- Allow specifying provider algorithms in SignatureAlgorithms (upstream #22779)
+
+* Fri Feb 09 2024 Sahana Prasad <sahana@redhat.com> - 1:3.2.1-2
+- Fix version aliasing issue
+- https://github.com/openssl/openssl/issues/23534
+
+* Tue Feb 06 2024 Sahana Prasad <sahana@redhat.com> - 1:3.2.1-1
+- Rebase to upstream version 3.2.1
+
+* Thu Jan 25 2024 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.1.4-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild
+
+* Sun Jan 21 2024 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.1.4-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild
+
+* Wed Jan 10 2024 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.1.4-2
+- We don't want to ship openssl-pkcs11 in RHEL10/Centos 10
+
+* Thu Oct 26 2023 Sahana Prasad <sahana@redhat.com> - 1:3.1.4-1
+- Rebase to upstream version 3.1.4
+
+* Thu Oct 19 2023 Sahana Prasad <sahana@redhat.com> - 1:3.1.3-1
+- Rebase to upstream version 3.1.3
+
+* Thu Aug 31 2023 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.1.1-4
+- Drop duplicated patch and do some contamination
+
+* Tue Aug 22 2023 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.1.1-3
+- Integrate FIPS patches from CentOS
+
+* Fri Aug 04 2023 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.1.1-2
+- migrated to SPDX license
+
+* Thu Jul 27 2023 Sahana Prasad <sahana@redhat.com> - 1:3.1.1-1
+- Rebase to upstream version 3.1.1
   Resolves: CVE-2023-0464
   Resolves: CVE-2023-0465
   Resolves: CVE-2023-0466
   Resolves: CVE-2023-1255
   Resolves: CVE-2023-2650
+
+* Thu Jul 27 2023 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.0.8-4
+- Forbid custom EC more completely
+  Resolves: rhbz#2223953
+
+* Thu Jul 20 2023 Fedora Release Engineering <releng@fedoraproject.org> - 1:3.0.8-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_39_Mass_Rebuild
 
 * Tue Mar 21 2023 Sahana Prasad <sahana@redhat.com> - 1:3.0.8-2
 - Upload new upstream sources without manually hobbling them.
