@@ -19,7 +19,7 @@ Name:    openssl
 Epoch:   1
 %endif
 Version: 3.5.5
-Release: %{?xsrel}.1%{?dist}
+Release: %{?xsrel}.2%{?dist}
 Source0: openssl-3.5.5.tar.gz
 Patch0: 0002-Add-a-separate-config-file-to-use-for-rpm-installs.patch
 Patch1: 0003-RH-Do-not-install-html-docs.patch
@@ -37,6 +37,11 @@ Patch12: 0016-RH-Allow-disabling-of-SHA1-signatures.patch
 Patch13: 0051-Backport-upstream-27483-for-PKCS11-needs.patch
 Patch14: 0056-Add-targets-to-skip-build-of-non-installable-program.patch
 Patch15: pass_ipv6_address_correctly
+
+# XCP-ng patches
+Patch1001: 0001-CVE-2026-34180-avoid-length-truncation-in-ASN1_STRING_set.patch
+Patch1002: 0002-CVE-2026-7383-reject-oversized-inputs-in-ASN1_mbstring_ncopy.patch
+
 # Source1: fips-hmacify.sh
 Source1: 0001-For-XenServer-8.4-retain-support-for-SHA1-signatures.patch
 
@@ -301,6 +306,10 @@ basearch=%{_arch}
 %ldconfig_scriptlets libs
 
 %changelog
+* Mon Jul 27 2026 Vincent Michel <vincent.michel@vates.tech> - 1:3.5.5-1.2
+- Fixes CVE-2026-34180: Avoid length truncation in ASN1_STRING_set
+- Fixes CVE-2026-7383: Reject oversized inputs in ASN1_mbstring_ncopy()
+
 * Thu May 28 2026 Vincent Michel <vincent.michel@vates.tech> - 1:3.5.5-1.1
 - *** Upstream changelog ***
   * Mon Mar 02 2026 Mark Syms  <mark.syms@citrix.com> - 1:3.5.5-1
