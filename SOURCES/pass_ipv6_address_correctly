@@ -1,0 +1,49 @@
+From 45932abc1e56d3b25df35199d33a7e0a45f8cace Mon Sep 17 00:00:00 2001
+From: Mark Syms <mark.syms@citrix.com>
+Date: Mon, 12 Jan 2026 13:56:52 +0000
+Subject: [PATCH] Pass IPv6 address correctly to test
+
+With Perl 5.16.3 it is necessary to remove `[]` from IPv6 addresses
+before passing them to socket creation functions. This is not required
+on newer versions of the perl runtime.
+diff --git a/util/perl/TLSProxy/Proxy.pm b/util/perl/TLSProxy/Proxy.pm
+index c3db4e28db..25ae8be3c9 100644
+--- a/util/perl/TLSProxy/Proxy.pm
++++ b/util/perl/TLSProxy/Proxy.pm
+@@ -130,29 +130,31 @@ sub init
+     # find a port that's available.
+     my $test_client_addr = $have_IPv6 ? "[::1]" : "127.0.0.1";
+     my $found_port = 0;
++    my $tmp_client_addr = $test_client_addr;
++    $tmp_client_addr =~ s/[\[\]]//g; # Remove [ and ]
+     for (my $i = 0; $i <= 10; $i++) {
+         $test_client_port = 49152 + int(rand(65535 - 49152));
+         my $test_sock;
+         if ($useINET6 == 0) {
+             if ($useSockInet == 0) {
+                 $test_sock = IO::Socket::IP->new(LocalPort => $test_client_port,
+-                                                 LocalAddr => $test_client_addr);
++                                                 LocalAddr => $tmp_client_addr);
+             } else {
+-                $test_sock = IO::Socket::INET->new(LocalAddr => $test_client_addr,
++                $test_sock = IO::Socket::INET->new(LocalAddr => $tmp_client_addr,
+                                                    LocalPort => $test_client_port);
+             }
+         } else {
+-            $test_sock = IO::Socket::INET6->new(LocalAddr => $test_client_addr,
++            $test_sock = IO::Socket::INET6->new(LocalAddr => $tmp_client_addr,
+                                                 LocalPort => $test_client_port,
+                                                 Domain => AF_INET6);
+         }
+         if ($test_sock) {
+             $found_port = 1;
+             $test_sock->close();
+-            print "Found available client port ${test_client_port}\n";
++            print "Found available client port ${test_client_addr}:${test_client_port}\n";
+             last;
+         }
+-        print "Port ${test_client_port} in use - $@\n";
++        print "Port ${test_client_addr}:${test_client_port} in use - $@\n";
+     }
+   
+     if ($found_port == 0) {
