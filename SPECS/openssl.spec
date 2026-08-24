@@ -19,7 +19,7 @@ Name:    openssl
 Epoch:   1
 %endif
 Version: 3.5.5
-Release: %{?xsrel}.3%{?dist}
+Release: %{?xsrel}.3~xcpng3273.1%{?dist}
 Source0: openssl-3.5.5.tar.gz
 Patch0: 0002-Add-a-separate-config-file-to-use-for-rpm-installs.patch
 Patch1: 0003-RH-Do-not-install-html-docs.patch
