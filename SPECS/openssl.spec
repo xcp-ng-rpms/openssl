@@ -19,7 +19,7 @@ Name:    openssl
 Epoch:   1
 %endif
 Version: 3.5.5
-Release: %{?xsrel}.2%{?dist}
+Release: %{?xsrel}.3%{?dist}
 Source0: openssl-3.5.5.tar.gz
 Patch0: 0002-Add-a-separate-config-file-to-use-for-rpm-installs.patch
 Patch1: 0003-RH-Do-not-install-html-docs.patch
@@ -309,6 +309,9 @@ basearch=%{_arch}
 %ldconfig_scriptlets libs
 
 %changelog
+* Mon Aug 24 2026 Vincent Michel <vincent.michel@vates.tech> - 1:3.5.5-1.3
+- Restore '0008-Add-FIPS_mode-compatibility-macro.patch' to provide 'fips.h'
+
 * Mon Jul 27 2026 Vincent Michel <vincent.michel@vates.tech> - 1:3.5.5-1.2
 - Fixes CVE-2026-34180: Avoid length truncation in ASN1_STRING_set
 - Fixes CVE-2026-7383: Reject oversized inputs in ASN1_mbstring_ncopy()
