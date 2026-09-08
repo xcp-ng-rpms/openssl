@@ -19,7 +19,7 @@ Name:    openssl
 Epoch:   1
 %endif
 Version: 3.5.5
-Release: %{?xsrel}.2%{?dist}
+Release: %{?xsrel}.3%{?dist}
 Source0: openssl-3.5.5.tar.gz
 Patch0: 0002-Add-a-separate-config-file-to-use-for-rpm-installs.patch
 Patch1: 0003-RH-Do-not-install-html-docs.patch
@@ -39,8 +39,11 @@ Patch14: 0056-Add-targets-to-skip-build-of-non-installable-program.patch
 Patch15: pass_ipv6_address_correctly
 
 # XCP-ng patches
-Patch1001: 0001-CVE-2026-34180-avoid-length-truncation-in-ASN1_STRING_set.patch
-Patch1002: 0002-CVE-2026-7383-reject-oversized-inputs-in-ASN1_mbstring_ncopy.patch
+# This patch was removed between versions 3.0.9-2.0.1 and 1:3.5.5-1
+# It provides the header file 'fips.h' which is necessary to build openSSH
+Patch1001: 0008-Add-FIPS_mode-compatibility-macro.patch
+Patch1002: 0001-CVE-2026-34180-avoid-length-truncation-in-ASN1_STRING_set.patch
+Patch1003: 0002-CVE-2026-7383-reject-oversized-inputs-in-ASN1_mbstring_ncopy.patch
 
 # Source1: fips-hmacify.sh
 Source1: 0001-For-XenServer-8.4-retain-support-for-SHA1-signatures.patch
@@ -306,6 +309,9 @@ basearch=%{_arch}
 %ldconfig_scriptlets libs
 
 %changelog
+* Mon Aug 24 2026 Vincent Michel <vincent.michel@vates.tech> - 1:3.5.5-1.3
+- Restore '0008-Add-FIPS_mode-compatibility-macro.patch' to provide 'fips.h'
+
 * Mon Jul 27 2026 Vincent Michel <vincent.michel@vates.tech> - 1:3.5.5-1.2
 - Fixes CVE-2026-34180: Avoid length truncation in ASN1_STRING_set
 - Fixes CVE-2026-7383: Reject oversized inputs in ASN1_mbstring_ncopy()
