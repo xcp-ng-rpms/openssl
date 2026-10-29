@@ -317,7 +317,7 @@ index 9874e6bad6..76b6befbad 100644
 +#endif
      ADD_TEST(test_default_cipherlist_explicit);
      ADD_TEST(test_default_cipherlist_clear);
-     ADD_TEST(test_stdname_cipherlist);
+ #ifndef OPENSSL_NO_TLS1_3
 -- 
 2.52.0
 

@@ -33,7 +33,7 @@ print(string.sub(hash, 0, 16))
 
 Summary: Utilities from the general purpose cryptography library with TLS implementation
 Name: openssl
-Version: 3.5.5
+Version: 3.5.7
 Release: 1%{?dist}
 Epoch: 1
 Source0: openssl-%{version}.tar.gz
@@ -474,6 +474,19 @@ ln -s /etc/crypto-policies/back-ends/openssl_fips.config $RPM_BUILD_ROOT%{_sysco
 %ldconfig_scriptlets libs
 
 %changelog
+* Wed Jun 10 2026 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.5.7-1
+- Rebase to OpenSSL 3.5.7
+
+* Mon Apr 20 2026 Pavol Žáčik <pzacik@redhat.com> - 1:3.5.5-2
+- Backport security patches from OpenSSL 3.5.6
+  Resolves: CVE-2026-2673
+  Resolves: CVE-2026-28387
+  Resolves: CVE-2026-28388
+  Resolves: CVE-2026-28389
+  Resolves: CVE-2026-28390
+  Resolves: CVE-2026-31789
+  Resolves: CVE-2026-31790
+
 * Wed Jan 28 2026 Dmitry Belyavskiy <dbelyavs@redhat.com> - 1:3.5.5-1
 - Rebase to OpenSSL 3.5.5, resolving CVE-2025-15467, CVE-2025-15468,
   CVE-2025-15469, CVE-2025-66199, CVE-2025-68160, CVE-2025-69418, CVE-2025-69420,
