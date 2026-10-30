@@ -16,19 +16,8 @@ Patch-id: 11
 Patch-status: |
     # # remove unsupported EC curves
 From-dist-git-commit: 4334bc837fbc64d14890fdc51679a80770d498ce
----
- apps/speed.c                                  |   8 -
- crypto/ec/ec_curve.c                          | 769 ------------------
- crypto/evp/ec_support.c                       |  87 --
- test/acvp_test.inc                            |   9 -
- test/ecdsatest.h                              |  17 -
- test/ectest.c                                 | 175 +---
- test/recipes/15-test_genec.t                  |  27 -
- test/recipes/30-test_evp_data/evppkey_ecc.txt |   1 +
- 8 files changed, 10 insertions(+), 1083 deletions(-)
-
 diff --git a/apps/speed.c b/apps/speed.c
-index a8d7cb14f5..13c8505ed9 100644
+index 6cf9748902..a36faa686d 100644
 --- a/apps/speed.c
 +++ b/apps/speed.c
 @@ -458,8 +458,6 @@ static double ffdh_results[FFDH_NUM][1]; /* 1 op: derivation */
@@ -68,7 +57,7 @@ index a8d7cb14f5..13c8505ed9 100644
          { "nistp256", NID_X9_62_prime256v1, 256 },
          { "nistp384", NID_secp384r1, 384 },
 diff --git a/crypto/ec/ec_curve.c b/crypto/ec/ec_curve.c
-index c17a7e5477..c6455ff691 100644
+index c3bc92fd75..28c83df735 100644
 --- a/crypto/ec/ec_curve.c
 +++ b/crypto/ec/ec_curve.c
 @@ -30,34 +30,6 @@ typedef struct {
@@ -799,7 +788,7 @@ index c17a7e5477..c6455ff691 100644
  static const struct {
      EC_CURVE_DATA h;
      unsigned char data[0 + 32 * 6];
-@@ -2740,8 +2047,6 @@ static const ec_list_element curve_list[] = {
+@@ -2570,8 +1877,6 @@ static const ec_list_element curve_list[] = {
          "NIST/SECG curve over a 521 bit prime field" },
  
      /* X9.62 curves */
@@ -808,7 +797,7 @@ index c17a7e5477..c6455ff691 100644
      { NID_X9_62_prime256v1, &_EC_X9_62_PRIME_256V1.h,
  #if defined(ECP_NISTZ256_ASM)
          EC_GFp_nistz256_method,
-@@ -2784,26 +2089,6 @@ static const ec_list_element curve_list[] = {
+@@ -2614,26 +1919,6 @@ static const ec_list_element curve_list[] = {
  
  static const ec_list_element curve_list[] = {
      /* prime field curves */
@@ -835,7 +824,7 @@ index c17a7e5477..c6455ff691 100644
  #ifndef OPENSSL_NO_EC_NISTP_64_GCC_128
      { NID_secp224r1, &_EC_NIST_PRIME_224.h, EC_GFp_nistp224_method,
          "NIST/SECG curve over a 224 bit prime field" },
-@@ -2833,18 +2118,6 @@ static const ec_list_element curve_list[] = {
+@@ -2663,18 +1948,6 @@ static const ec_list_element curve_list[] = {
  #endif
          "NIST/SECG curve over a 521 bit prime field" },
      /* X9.62 curves */
@@ -854,7 +843,7 @@ index c17a7e5477..c6455ff691 100644
      { NID_X9_62_prime256v1, &_EC_X9_62_PRIME_256V1.h,
  #if defined(ECP_NISTZ256_ASM)
          EC_GFp_nistz256_method,
-@@ -2928,36 +2201,6 @@ static const ec_list_element curve_list[] = {
+@@ -2758,36 +2031,6 @@ static const ec_list_element curve_list[] = {
          "X9.62 curve over a 368 bit binary field" },
      { NID_X9_62_c2tnb431r1, &_EC_X9_62_CHAR2_431R1.h, 0,
          "X9.62 curve over a 431 bit binary field" },
@@ -891,7 +880,7 @@ index c17a7e5477..c6455ff691 100644
      /* IPSec curves */
      { NID_ipsec3, &_EC_IPSEC_155_ID3.h, 0,
          "\n\tIPSec/IKE/Oakley curve #3 over a 155 bit binary field.\n"
-@@ -2967,18 +2210,6 @@ static const ec_list_element curve_list[] = {
+@@ -2797,18 +2040,6 @@ static const ec_list_element curve_list[] = {
          "\tNot suitable for ECDSA.\n\tQuestionable extension field!" },
  #endif
      /* brainpool curves */
@@ -1080,7 +1069,7 @@ index 700d7b5253..6aa4faa461 100644
      { NID_secp224r1, NID_sha224,
          "699325d6fc8fbbb4981a6ded3c3a54ad2e4e3db8a5669201912064c64e700c139248cdc1"
 diff --git a/test/ectest.c b/test/ectest.c
-index 0233f870b6..f243f6fb3c 100644
+index 1e4ae9c63e..56cfc99421 100644
 --- a/test/ectest.c
 +++ b/test/ectest.c
 @@ -174,183 +174,26 @@ static int prime_field_tests(void)
@@ -1275,7 +1264,7 @@ index 0233f870b6..f243f6fb3c 100644
                                      "FFFFFFFF000000000000000000000001"))
          || !TEST_int_eq(1, BN_check_prime(p, ctx, NULL))
          || !TEST_true(BN_hex2bn(&a, "FFFFFFFFFFFFFFFFFFFFFFFF"
-@@ -3522,7 +3365,7 @@ int setup_tests(void)
+@@ -3107,7 +2950,7 @@ int setup_tests(void)
  
      ADD_TEST(parameter_test);
      ADD_TEST(ossl_parameter_test);
@@ -1343,6 +1332,3 @@ index e6a2c9eb59..861c01e177 100644
  Unapproved = 1
  Ctrl = key-check:0
 +Result = KEYGEN_GENERATE_ERROR
--- 
-2.52.0
-

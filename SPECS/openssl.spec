@@ -1,8 +1,8 @@
-%global package_speccommit 826189aeb9367cce0cb512e33bb932f3940e2a68
-%global usver 3.5.5
+%global package_speccommit 5df88d2515b0f8cac2e22e6b75589ec029d64d05
+%global usver 3.5.7
 %global xsver 1
 %global xsrel %{xsver}%{?xscount}%{?xshash}
-%global package_srccommit openssl-3.5.5
+%global package_srccommit openssl-3.5.7
 # For the curious:
 # 0.9.8jk + EAP-FAST soversion = 8
 # 1.0.0 soversion = 10
@@ -18,9 +18,9 @@ Name:    openssl
 %if 0%{?xenserver} < 9
 Epoch:   1
 %endif
-Version: 3.5.5
+Version: 3.5.7
 Release: %{?xsrel}%{?dist}
-Source0: openssl-3.5.5.tar.gz
+Source0: openssl-3.5.7.tar.gz
 Patch0: 0002-Add-a-separate-config-file-to-use-for-rpm-installs.patch
 Patch1: 0003-RH-Do-not-install-html-docs.patch
 Patch2: 0004-RH-apps-ca-fix-md-option-help-text.patch-DROP.patch
@@ -297,7 +297,10 @@ basearch=%{_arch}
 %ldconfig_scriptlets libs
 
 %changelog
-* Mon Mar 02 2026 Mark Syms  <mark.syms@citrix.com> - 1:3.5.5-1
+* Thu Jun 18 2026 Mark Syms  <mark.syms@citrix.com> - 3.5.7-1
+- Update to 3.5.7
+
+* Mon Mar 02 2026 Mark Syms  <mark.syms@citrix.com> - 3.5.5-1
 - Update to 3.5.5
 
 * Thu Feb 26 2026 Mark Syms <mark.syms@citrix.com> - 3.5.4-3
