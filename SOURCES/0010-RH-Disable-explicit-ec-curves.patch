@@ -9,16 +9,8 @@ Patch-status: |
     # # Disable explicit EC curves
     # # https://bugzilla.redhat.com/show_bug.cgi?id=2066412
 From-dist-git-commit: 4334bc837fbc64d14890fdc51679a80770d498ce
----
- crypto/ec/ec_asn1.c                           | 11 +++++++
- crypto/ec/ec_lib.c                            |  8 ++++-
- test/ectest.c                                 | 22 +++++++-------
- test/endecode_test.c                          | 30 +++++++++----------
- .../30-test_evp_data/evppkey_ecdsa.txt        | 12 --------
- 5 files changed, 45 insertions(+), 38 deletions(-)
-
 diff --git a/crypto/ec/ec_asn1.c b/crypto/ec/ec_asn1.c
-index bfd0242c6f..bb462121b5 100644
+index 6b44b8068f..bb0d743e73 100644
 --- a/crypto/ec/ec_asn1.c
 +++ b/crypto/ec/ec_asn1.c
 @@ -889,6 +889,12 @@ EC_GROUP *d2i_ECPKParameters(EC_GROUP **a, const unsigned char **in, long len)
@@ -47,10 +39,10 @@ index bfd0242c6f..bb462121b5 100644
  
      if (priv_key->privateKey) {
 diff --git a/crypto/ec/ec_lib.c b/crypto/ec/ec_lib.c
-index 13dcd29b11..de21cb2f10 100644
+index e29e39aca5..8cd2b8709c 100644
 --- a/crypto/ec/ec_lib.c
 +++ b/crypto/ec/ec_lib.c
-@@ -1551,7 +1551,7 @@ EC_GROUP *EC_GROUP_new_from_params(const OSSL_PARAM params[],
+@@ -1553,7 +1553,7 @@ EC_GROUP *EC_GROUP_new_from_params(const OSSL_PARAM params[],
      int is_prime_field = 1;
      BN_CTX *bnctx = NULL;
      const unsigned char *buf = NULL;
@@ -59,7 +51,7 @@ index 13dcd29b11..de21cb2f10 100644
  #endif
  
      /* This is the simple named group case */
-@@ -1726,6 +1726,11 @@ EC_GROUP *EC_GROUP_new_from_params(const OSSL_PARAM params[],
+@@ -1729,6 +1729,11 @@ EC_GROUP *EC_GROUP_new_from_params(const OSSL_PARAM params[],
          goto err;
      }
      if (named_group == group) {
@@ -71,7 +63,7 @@ index 13dcd29b11..de21cb2f10 100644
          /*
           * If we did not find a named group then the encoding should be explicit
           * if it was specified
-@@ -1741,6 +1746,7 @@ EC_GROUP *EC_GROUP_new_from_params(const OSSL_PARAM params[],
+@@ -1744,6 +1749,7 @@ EC_GROUP *EC_GROUP_new_from_params(const OSSL_PARAM params[],
              goto err;
          }
          EC_GROUP_set_asn1_flag(group, OPENSSL_EC_EXPLICIT_CURVE);
@@ -80,10 +72,10 @@ index 13dcd29b11..de21cb2f10 100644
          EC_GROUP_free(group);
          group = named_group;
 diff --git a/test/ectest.c b/test/ectest.c
-index f243f6fb3c..d8246524f3 100644
+index 56cfc99421..045739617c 100644
 --- a/test/ectest.c
 +++ b/test/ectest.c
-@@ -2791,11 +2791,12 @@ static int do_test_custom_explicit_fromdata(EC_GROUP *group, BN_CTX *ctx,
+@@ -2376,11 +2376,12 @@ static int do_test_custom_explicit_fromdata(EC_GROUP *group, BN_CTX *ctx,
      if (!TEST_ptr(params = OSSL_PARAM_BLD_to_param(bld))
          || !TEST_ptr(pctx = EVP_PKEY_CTX_new_from_name(NULL, "EC", NULL))
          || !TEST_int_gt(EVP_PKEY_fromdata_init(pctx), 0)
@@ -98,7 +90,7 @@ index f243f6fb3c..d8246524f3 100644
      /*- Check that all the set values are retrievable -*/
  
      /* There should be no match to a group name since the generator changed */
-@@ -2924,6 +2925,7 @@ static int do_test_custom_explicit_fromdata(EC_GROUP *group, BN_CTX *ctx,
+@@ -2509,6 +2510,7 @@ static int do_test_custom_explicit_fromdata(EC_GROUP *group, BN_CTX *ctx,
  #endif
      )
          goto err;
@@ -106,7 +98,7 @@ index f243f6fb3c..d8246524f3 100644
      ret = 1;
  err:
      BN_free(order_out);
-@@ -3217,21 +3219,21 @@ static int custom_params_test(int id)
+@@ -2802,21 +2804,21 @@ static int custom_params_test(int id)
  
      /* Compute keyexchange in both directions */
      if (!TEST_ptr(pctx1 = EVP_PKEY_CTX_new(pkey1, NULL))
@@ -135,7 +127,7 @@ index f243f6fb3c..d8246524f3 100644
      /* Both sides should expect the same shared secret */
      if (!TEST_mem_eq(buf1, sslen, buf2, t))
          goto err;
-@@ -3286,7 +3288,7 @@ static int custom_params_test(int id)
+@@ -2871,7 +2873,7 @@ static int custom_params_test(int id)
          /* compare with previous result */
          || !TEST_mem_eq(buf1, t, buf2, sslen))
          goto err;
@@ -145,7 +137,7 @@ index f243f6fb3c..d8246524f3 100644
  
  err:
 diff --git a/test/endecode_test.c b/test/endecode_test.c
-index 3f8ed7f392..c3b55af3e7 100644
+index bd068b208a..d3d8eee428 100644
 --- a/test/endecode_test.c
 +++ b/test/endecode_test.c
 @@ -63,7 +63,7 @@ static BN_CTX *bnctx = NULL;
@@ -172,7 +164,7 @@ index 3f8ed7f392..c3b55af3e7 100644
  DOMAIN_KEYS(ECExplicitTriNamedCurve);
  IMPLEMENT_TEST_SUITE(ECExplicitTriNamedCurve, "EC", 1)
  IMPLEMENT_TEST_SUITE_LEGACY(ECExplicitTriNamedCurve, "EC")
-@@ -1458,8 +1458,8 @@ int setup_tests(void)
+@@ -1431,8 +1431,8 @@ int setup_tests(void)
          || !create_ec_explicit_prime_params_namedcurve(bld_prime_nc)
          || !create_ec_explicit_prime_params(bld_prime)
          || !TEST_ptr(ec_explicit_prime_params_nc = OSSL_PARAM_BLD_to_param(bld_prime_nc))
@@ -183,7 +175,7 @@ index 3f8ed7f392..c3b55af3e7 100644
          || !TEST_ptr(bld_tri_nc = OSSL_PARAM_BLD_new())
          || !TEST_ptr(bld_tri = OSSL_PARAM_BLD_new())
          || !create_ec_explicit_trinomial_params_namedcurve(bld_tri_nc)
-@@ -1486,8 +1486,8 @@ int setup_tests(void)
+@@ -1459,8 +1459,8 @@ int setup_tests(void)
      TEST_info("Generating EC keys...");
      MAKE_DOMAIN_KEYS(EC, "EC", EC_params);
      MAKE_DOMAIN_KEYS(ECExplicitPrimeNamedCurve, "EC", ec_explicit_prime_params_nc);
@@ -194,7 +186,7 @@ index 3f8ed7f392..c3b55af3e7 100644
      MAKE_DOMAIN_KEYS(ECExplicitTriNamedCurve, "EC", ec_explicit_tri_params_nc);
      MAKE_DOMAIN_KEYS(ECExplicitTri2G, "EC", ec_explicit_tri_params_explicit);
  #endif
-@@ -1566,9 +1566,9 @@ int setup_tests(void)
+@@ -1539,9 +1539,9 @@ int setup_tests(void)
          ADD_TEST_SUITE_LEGACY(EC);
          ADD_TEST_SUITE(ECExplicitPrimeNamedCurve);
          ADD_TEST_SUITE_LEGACY(ECExplicitPrimeNamedCurve);
@@ -207,7 +199,7 @@ index 3f8ed7f392..c3b55af3e7 100644
          ADD_TEST_SUITE(ECExplicitTriNamedCurve);
          ADD_TEST_SUITE_LEGACY(ECExplicitTriNamedCurve);
          ADD_TEST_SUITE(ECExplicitTri2G);
-@@ -1644,7 +1644,7 @@ void cleanup_tests(void)
+@@ -1617,7 +1617,7 @@ void cleanup_tests(void)
  {
  #ifndef OPENSSL_NO_EC
      OSSL_PARAM_free(ec_explicit_prime_params_nc);
@@ -216,7 +208,7 @@ index 3f8ed7f392..c3b55af3e7 100644
      OSSL_PARAM_BLD_free(bld_prime_nc);
      OSSL_PARAM_BLD_free(bld_prime);
  #ifndef OPENSSL_NO_EC2M
-@@ -1666,8 +1666,8 @@ void cleanup_tests(void)
+@@ -1639,8 +1639,8 @@ void cleanup_tests(void)
  #ifndef OPENSSL_NO_EC
      FREE_DOMAIN_KEYS(EC);
      FREE_DOMAIN_KEYS(ECExplicitPrimeNamedCurve);
@@ -250,6 +242,3 @@ index 07dc4b4298..4c47fa68c2 100644
  PrivateKey = B-163
  -----BEGIN PRIVATE KEY-----
  MGMCAQAwEAYHKoZIzj0CAQYFK4EEAA8ETDBKAgEBBBUDnQW0mLiHVha/jqFznX/K
--- 
-2.52.0
-
