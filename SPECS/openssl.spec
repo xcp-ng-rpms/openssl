@@ -1,8 +1,8 @@
-%global package_speccommit 826189aeb9367cce0cb512e33bb932f3940e2a68
-%global usver 3.5.5
+%global package_speccommit 5df88d2515b0f8cac2e22e6b75589ec029d64d05
+%global usver 3.5.7
 %global xsver 1
 %global xsrel %{xsver}%{?xscount}%{?xshash}
-%global package_srccommit openssl-3.5.5
+%global package_srccommit openssl-3.5.7
 # For the curious:
 # 0.9.8jk + EAP-FAST soversion = 8
 # 1.0.0 soversion = 10
@@ -18,9 +18,9 @@ Name:    openssl
 %if 0%{?xenserver} < 9
 Epoch:   1
 %endif
-Version: 3.5.5
-Release: %{?xsrel}.3%{?dist}
-Source0: openssl-3.5.5.tar.gz
+Version: 3.5.7
+Release: %{?xsrel}.1%{?dist}
+Source0: openssl-3.5.7.tar.gz
 Patch0: 0002-Add-a-separate-config-file-to-use-for-rpm-installs.patch
 Patch1: 0003-RH-Do-not-install-html-docs.patch
 Patch2: 0004-RH-apps-ca-fix-md-option-help-text.patch-DROP.patch
@@ -42,8 +42,6 @@ Patch15: pass_ipv6_address_correctly
 # This patch was removed between versions 3.0.9-2.0.1 and 1:3.5.5-1
 # It provides the header file 'fips.h' which is necessary to build openSSH
 Patch1001: 0008-Add-FIPS_mode-compatibility-macro.patch
-Patch1002: 0001-CVE-2026-34180-avoid-length-truncation-in-ASN1_STRING_set.patch
-Patch1003: 0002-CVE-2026-7383-reject-oversized-inputs-in-ASN1_mbstring_ncopy.patch
 
 # Source1: fips-hmacify.sh
 Source1: 0001-For-XenServer-8.4-retain-support-for-SHA1-signatures.patch
@@ -309,6 +307,12 @@ basearch=%{_arch}
 %ldconfig_scriptlets libs
 
 %changelog
+* Fri Oct 30 2026 Laudin Molina Troconis <laudin.molina@vates.tech> - 1:3.5.7-1.1
+- Drop patches for CVE-2026-34180 and CVE-2026-7383, fixed upstream in 3.5.7
+- *** Upstream changelog ***
+  * Thu Jun 18 2026 Mark Syms  <mark.syms@citrix.com> - 3.5.7-1
+  - Update to 3.5.7
+
 * Mon Aug 24 2026 Vincent Michel <vincent.michel@vates.tech> - 1:3.5.5-1.3
 - Restore '0008-Add-FIPS_mode-compatibility-macro.patch' to provide 'fips.h'
 
