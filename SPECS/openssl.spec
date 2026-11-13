@@ -42,6 +42,11 @@ Patch15: pass_ipv6_address_correctly
 # This patch was removed between versions 3.0.9-2.0.1 and 1:3.5.5-1
 # It provides the header file 'fips.h' which is necessary to build openSSH
 Patch1001: 0008-Add-FIPS_mode-compatibility-macro.patch
+# Backport of upstream commit 3687ff71 (https://github.com/openssl/openssl/pull/31818)
+# Fixes a regression in 3.5.7: reading concatenated DER objects from a BIO (e.g.
+# Python's SSLContext.load_verify_locations(cadata=<DER bytes>)) fails with
+# ASN1_R_NOT_ENOUGH_DATA. Fixed upstream in 3.5.8, drop this patch when rebasing.
+Patch1002: Don-t-raise-NOT_ENOUGH_DATA-on-a-clean-EOF-at-an-object-boundary.patch
 
 # Source1: fips-hmacify.sh
 Source1: 0001-For-XenServer-8.4-retain-support-for-SHA1-signatures.patch
@@ -308,6 +313,8 @@ basearch=%{_arch}
 
 %changelog
 * Fri Oct 30 2026 Laudin Molina Troconis <laudin.molina@vates.tech> - 1:3.5.7-1.1
+- Don't raise NOT_ENOUGH_DATA on a clean EOF at an object boundary
+  (backport of upstream commit 3687ff71, fixed upstream in 3.5.8)
 - Drop patches for CVE-2026-34180 and CVE-2026-7383, fixed upstream in 3.5.7
 - *** Upstream changelog ***
   * Thu Jun 18 2026 Mark Syms  <mark.syms@citrix.com> - 3.5.7-1
