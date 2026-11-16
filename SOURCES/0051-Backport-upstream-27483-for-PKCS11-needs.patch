@@ -3,13 +3,6 @@ From: Dmitry Belyavskiy <beldmit@gmail.com>
 Date: Mon, 12 May 2025 14:34:39 +0200
 Subject: [PATCH 51/57] Backport upstream #27483 for PKCS11 needs
 
----
- .../implementations/skeymgmt/aes_skmgmt.c     |  2 +
- providers/implementations/skeymgmt/generic.c  | 12 ++++
- .../implementations/skeymgmt/skeymgmt_lcl.h   |  1 +
- test/evp_skey_test.c                          | 61 +++++++++++++++++++
- 4 files changed, 76 insertions(+)
-
 diff --git a/providers/implementations/skeymgmt/aes_skmgmt.c b/providers/implementations/skeymgmt/aes_skmgmt.c
 index 02370b7fb7..48e3b64580 100644
 --- a/providers/implementations/skeymgmt/aes_skmgmt.c
@@ -63,10 +56,10 @@ index c75776cce4..7e35b2cc9e 100644
  
  #endif
 diff --git a/test/evp_skey_test.c b/test/evp_skey_test.c
-index 7fd70ca732..dddf92f9da 100644
+index 11b1a4e1cd..37d9c0f578 100644
 --- a/test/evp_skey_test.c
 +++ b/test/evp_skey_test.c
-@@ -107,6 +107,66 @@ end:
+@@ -93,6 +93,66 @@ end:
      return ret;
  }
  
@@ -133,7 +126,7 @@ index 7fd70ca732..dddf92f9da 100644
  #define IV_SIZE 16
  #define DATA_SIZE 32
  static int test_aes_raw_skey(void)
-@@ -267,6 +327,7 @@ int setup_tests(void)
+@@ -253,6 +313,7 @@ int setup_tests(void)
          return 0;
  
      ADD_TEST(test_skey_cipher);
@@ -141,6 +134,3 @@ index 7fd70ca732..dddf92f9da 100644
  
      ADD_TEST(test_aes_raw_skey);
  #ifndef OPENSSL_NO_DES
--- 
-2.52.0
-

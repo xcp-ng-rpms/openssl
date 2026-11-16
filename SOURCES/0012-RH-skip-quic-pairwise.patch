@@ -7,17 +7,11 @@ Patch-name: 0115-skip-quic-pairwise.patch
 Patch-id: 115
 Patch-status: |
     # skip quic and pairwise tests temporarily
----
- test/quicapitest.c                     |  4 +++-
- test/recipes/01-test_symbol_presence.t |  1 +
- test/recipes/30-test_pairwise_fail.t   | 10 ++++++++--
- 3 files changed, 12 insertions(+), 3 deletions(-)
-
 diff --git a/test/quicapitest.c b/test/quicapitest.c
-index 6b9ee8e69a..96cd735819 100644
+index d40413898a..c1ef429bcc 100644
 --- a/test/quicapitest.c
 +++ b/test/quicapitest.c
-@@ -3015,7 +3015,9 @@ int setup_tests(void)
+@@ -3162,7 +3162,9 @@ int setup_tests(void)
      ADD_TEST(test_cipher_find);
      ADD_TEST(test_version);
  #if defined(DO_SSL_TRACE_TEST)
@@ -81,6 +75,3 @@ index eaf0dbbb42..21864ad319 100644
      ok(run(test(["pairwise_fail_test", "-config", $provconf,
                   "-pairwise", "dsa", "-dsaparam", data_file("dsaparam.pem")])),
         "fips provider dsa keygen pairwise failure test");
--- 
-2.52.0
-
